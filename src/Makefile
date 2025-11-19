@@ -78,7 +78,7 @@ ddTool/ddTool.o: ddTool/ddTool.c
 ddTool/ddToolCode.o: ddTool/ddTool.c
 	@$(CC) -DPREFIX=ram_ -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 
-filesystem/filesystem.o: filesystem/filesystem.c
+filesystem/filesystem.o: filesystem/filesystem.s
 	@echo "Compiling filesystem..."
 	@$(CC) -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 

@@ -40,8 +40,8 @@ else
 fi
 
 if [ "$MAKE_FS" = "-fs" ]; then
-    rm -f -r include/fileHeaders
-    $PY3_CMD tool/hConv.py filesystem include
+    $PY3_CMD tool/hConv.py filesystem src/filesystem --priority error_screens/Error_IPL.yaz0 --extensions zmap,zscene,bin,yaz0,tbl
+
 fi
 
 printf "Compiling...\n"
