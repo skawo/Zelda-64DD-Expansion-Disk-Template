@@ -3,12 +3,16 @@
 VERSION_PARAM="USA"
 MAKE_FS="-fs"
 CLEAN="noclean"
+MAKE_JUST_FS="-notjustfs"
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
         -nfs|--nfs|nfs|nofs|-nofs|--nofs)
             MAKE_FS="nofs"
             ;;
+        -just-fs|just-fs|justfs|-justfs)
+            MAKE_JUST_FS="-justfs"
+            ;;            
         -clean|--clean|-c|--c|c|clean)
             CLEAN="-c"
             ;;
@@ -39,9 +43,12 @@ else
     MAKE_CMD="make"
 fi
 
-if [ "$MAKE_FS" = "-fs" ]; then
+if [ "$MAKE_FS" = "-fs" ] || [ "$MAKE_JUST_FS" = "-justfs" ]; then
     $PY3_CMD tool/hConv.py filesystem src/filesystem --priority error_screens/Error_IPL.yaz0 --extensions zmap,zscene,bin,yaz0,tbl
-
+    
+    if [ "$MAKE_JUST_FS" = "-justfs" ]; then
+        exit 
+    fi
 fi
 
 printf "Compiling...\n"
