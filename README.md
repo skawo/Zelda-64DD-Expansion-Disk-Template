@@ -14,3 +14,11 @@ Options may be passed to build.sh:
    * "USA", "USA-DEV", "USA-D64", "JPN", "JPN-DEV", "JPN-D64" - Build target
    * "clean" - Runs make clean before building the disk
    * "nofs" - Foregoes building the filesystem (to speed up compilation once a lot of files have been added).
+
+# Adding files
+Simply drop in .zscene, .zmap, .bin or .yaz files into the filesystem directory.
+(Additional extensions can be added by editing <i>tools/hConv.py</i>)
+
+After running .build.sh, headers will be generated in <i>include/fileHeaders</i> which should be included in the filesystem.c file.
+
+Afterwards, files can be loaded from the disk using the appropriate function (see the <i>Disk_Init</i> function in <i>diskCode.c</i> for an example)
