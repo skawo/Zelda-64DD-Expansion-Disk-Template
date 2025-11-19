@@ -133,6 +133,7 @@ typedef struct globals64DD
     Vec3f defaultSfxPos;
     f32 defaultFreqAndVolScale;
     s8 defaultReverb;
+    void* titleCardAddr;
 
 } globals64DD;
 
@@ -146,6 +147,8 @@ void Disk_GameState(struct GameState* state);
 void Disk_KaleidoDestroy();
 s32 Disk_GetENGMessage(struct Font*);
 void Disk_SetMessageTables(struct MessageTableEntry** Japanese, struct MessageTableEntry** English, struct MessageTableEntry** Credits);
+struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* sceneTable);
+void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 roomNum);
 
 void DrawRect(Gfx** gfxp, u8 r, u8 g, u8 b, u32 PosX, u32 PosY, u32 Sizex, u32 SizeY);
 void ShowErrorScreen(void* graphic, u32 graphicLen);
@@ -164,7 +167,8 @@ extern void* __Disk_VramEnd;
 extern void* __entry;
 extern void* RAM_LENGTH;
 
-#define SEGMENT_STATIC_START 0x80600000
+#define SEGMENT_STATIC_START 0x80700000
+#define ROOMS_START 0x80600000
 #define RAM_START (u32)&__entry
 #define RAM_LENGTH (u32)&RAM_LENGTH
 

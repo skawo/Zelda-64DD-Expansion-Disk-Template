@@ -21,4 +21,6 @@ Simply drop in .zscene, .zmap, .bin or .yaz files into the filesystem directory.
 
 After running .build.sh, headers will be generated in <i>include/fileHeaders</i> which should be included in the filesystem.c file.
 
-Afterwards, files can be loaded from the disk using the appropriate function (see the <i>Disk_Init</i> function in <i>diskCode.c</i> for an example)
+Afterwards, files can be loaded from the disk using the appropriate function (see the <i>Disk_Init</i> function in <i>diskCode.c</i> for an example).
+
+There also exists a pre-made function to replace arbitrary scenes in the game. The scenes and their rooms need to be defined in ddScenes.c

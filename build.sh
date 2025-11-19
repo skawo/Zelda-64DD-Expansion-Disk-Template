@@ -40,6 +40,7 @@ else
 fi
 
 if [ "$MAKE_FS" = "-fs" ]; then
+    rm -f -r include/fileHeaders
     $PY3_CMD tool/hConv.py filesystem include
 fi
 

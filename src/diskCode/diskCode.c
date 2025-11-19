@@ -1,5 +1,6 @@
 #include "diskCode.h"
 #include "versionedCode.c"
+#include "ddScenes.c"
 
 __attribute__((section(".codeHeader")))
 char Header[] = "ZELDA_DD";
@@ -21,7 +22,7 @@ ddHookTable hookTable =
 {
     .diskInit                   = (DiskInitFunc)&__Disk_Init_K1,
     .diskDestroy                = Disk_Destroy,
-    .loadRoom                   = NULL,
+    .loadRoom                   = Disk_LoadRoom,
     .sceneInit                  = NULL,
     .playInit                   = Disk_PlayInit,
     .playDestroy                = Disk_PlayDestroy,
@@ -37,7 +38,7 @@ ddHookTable hookTable =
     .kaleidoInit                = NULL,
     .kaleidoDestroy             = NULL,
     .kaleidoLoadDungeonMap      = NULL,
-    .getSceneEntry              = NULL,
+    .getSceneEntry              = Disk_GetSceneEntry,
     .unk_4C                     = { 0 },
     .handleEntranceTriggers     = NULL,
     .setMessageTables           = NULL,
@@ -132,8 +133,76 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
     Input* input = play->state.input;
     func[play->sceneDrawConfig](play);  
 
-    //vars.funcTablePtr->faultDrawText(25, 25, "Num actors: %d", play->actorCtx.total);
+    //vars.funcTablePtr->faultDrawText(25, 25, "Addr: %x", vars.test);
     Draw64DDDVDLogo(play);
+
+    if (vars.funcTablePtr->saveContext->showTitleCard && vars.titleCardAddr)
+        vars.play->actorCtx.titleCtx.texture = vars.titleCardAddr;
+}
+
+struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* sceneTable)
+{
+    for (int i = 0; i < ARRAY_COUNT(ddScenes); i++)
+    {
+        DDScene* scene = &ddScenes[i];
+
+        if (scene->sceneId == sceneId)
+        {
+            u8* addr = (u8*)ROOMS_START;
+
+            for (int j = 0; j < MAX_ROOMS; j++)
+            {
+                DDRoom* entry = &scene->rooms[j];
+
+                if (entry->diskAddr == (uintptr_t)NULL)
+                    break;
+
+                vars.funcTablePtr->loadFromDisk(addr, entry->diskAddr, entry->size);
+                addr += entry->size;
+            }
+
+            return &scene->entry;
+        }
+    }
+
+    return &sceneTable[sceneId];
+}
+
+void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 roomNum)
+{
+    for (int i = 0; i < ARRAY_COUNT(ddScenes); i++)
+    {
+        DDScene* scene = &ddScenes[i];
+
+        if (scene->sceneId == play->sceneId)
+        {
+            u8* addr = (u8*)ROOMS_START;
+
+            for (int j = 0; j < MAX_ROOMS; j++)
+            {
+                DDRoom* entry = &scene->rooms[j];
+
+                if (j == roomNum)
+                {
+                    roomCtx->roomRequestAddr = addr;
+                    vars.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);         
+                    addr += entry->size;
+
+                    u32 titleCardSize = scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart;
+                    vars.titleCardAddr = titleCardSize ? addr : NULL;
+                    
+                    vars.funcTablePtr->loadFromDisk(vars.titleCardAddr, scene->entry.titleFile.vromStart, titleCardSize);                      
+                    return;
+                }
+
+                addr += entry->size;
+            }
+        }
+    } 
+
+    u32 size = play->roomList.romFiles[roomNum].vromEnd - play->roomList.romFiles[roomNum].vromStart;
+    vars.funcTablePtr->dmaMgrRequestAsync(&roomCtx->dmaRequest, roomCtx->roomRequestAddr,
+                                          play->roomList.romFiles[roomNum].vromStart, size, 0, &roomCtx->loadQueue, NULL);
 }
 
 s32 Disk_GetENGMessage(struct Font* font)

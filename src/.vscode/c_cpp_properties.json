@@ -20,7 +20,7 @@
             "compilerPath": "C:\\msys64\\opt\\n64\\bin\\mips64-gcc.exe",
             "cStandard": "c99",
             "cppStandard": "c++17",
-            "intelliSenseMode": "gcc-x64"
+            "intelliSenseMode": "macos-clang-x86"
         }
     ],
     "version": 4
