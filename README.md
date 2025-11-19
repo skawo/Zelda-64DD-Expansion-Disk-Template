@@ -2,7 +2,7 @@ This repository allows you to create Zelda: Ocarina of Time Expansion Disks usin
 
 Provided is a general working template with rudimentary error handling and a few examples of what can be done using the game hooks.
 
-This code has been created using the excellent <a href="https://github.com/LuigiBlood/zelda_dawn_dusk">Zelda: Dawn and Dusk</a> mod by Captain Seedy-Eye and LuigBlood as a guide.
+This code has been created using the excellent <a href="https://github.com/LuigiBlood/zelda_dawn_dusk">Zelda: Dawn and Dusk</a> mod by Captain Seedy-Eye and LuigiBlood as a guide.
 
 # Building
 Requires Python 3 and WSL/Linux.
