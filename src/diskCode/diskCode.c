@@ -165,6 +165,8 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
         }
     }
 
+    // Prevent crashing when using the original data in 64DD Mode.
+    sceneTable[sceneId].unk_12 = 0;
     return &sceneTable[sceneId];
 }
 
