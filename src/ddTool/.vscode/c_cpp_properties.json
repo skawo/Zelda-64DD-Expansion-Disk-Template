@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/../../include/ultra64",
+                "${workspaceFolder}/../../include/libc",
+                "${workspaceFolder}/../../include/libc64",
+                "${workspaceFolder}/../../include/libu64",
+                "${workspaceFolder}/../../include/tables",
+                "${workspaceFolder}/../../include/audio",
+                "${workspaceFolder}/../../include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.26100.0",
+            "compilerPath": "C:\\msys64\\opt\\n64\\bin\\mips64-gcc.exe",
+            "cStandard": "c99",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
