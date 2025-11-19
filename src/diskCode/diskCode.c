@@ -185,9 +185,9 @@ void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 room
                 if (j == roomNum)
                 {
                     roomCtx->roomRequestAddr = addr;
-                    vars.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);         
+                    vars.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);                  // We're done loading!   
+                    
                     addr += entry->size;
-
                     u32 titleCardSize = scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart;
                     vars.titleCardAddr = titleCardSize ? addr : NULL;
                     
