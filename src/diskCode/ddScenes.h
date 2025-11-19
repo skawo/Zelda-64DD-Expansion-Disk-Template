@@ -40,3 +40,14 @@ typedef struct DDScene
         .sceneId = (_sceneId), \
         .rooms   = (_roomList), \
     }
+
+#define DD_ROOMS(name, ...) \
+    DDRoom name[] = {       \
+        __VA_ARGS__,        \
+        END_ROOMLIST        \
+    };
+
+#define DD_SCENES(...) \
+    DDScene ddScenes[] = {   \
+        __VA_ARGS__         \
+    };

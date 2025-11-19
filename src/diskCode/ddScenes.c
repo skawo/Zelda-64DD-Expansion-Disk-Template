@@ -1,12 +1,8 @@
 #include "ddScenes.h"
 
-DDRoom ddRoomsTest[] =
-{
-    DD_ROOM(TEST_ROOM0_ZMAP),
-    END_ROOMLIST,
-};
+DD_ROOMS(ddRoomsTest, DD_ROOM(TEST_ROOM0_ZMAP))
 
-DDScene ddScenes[] =
-{
+DD_SCENES
+(
     DD_SCENE(SCENE_MIDOS_HOUSE, ddRoomsTest, TEST_SCENE_ZSCENE, TEST_SCENE_TITLECARD_BIN, SDC_DEFAULT),
-};
+)
