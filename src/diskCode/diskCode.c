@@ -100,6 +100,8 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     }
     else if (ddMemcmp(sContext->unk_1358, SAVE_ID, 4))      // Save from another disk.
         ShowErrorScreen(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
+
+    REPLACE_FUNC(_Font_LoadChar, Font_LoadChar_Table);
 }
 
 void Disk_Destroy()
@@ -119,8 +121,6 @@ void Disk_GameState(struct GameState* state)
 void Disk_PlayInit(struct PlayState* play)
 {
     vars.play = play;
-
-    //REPLACE_FUNC(_Font_LoadChar, Font_LoadChar_Table, 0x50);
 }
 
 void Disk_PlayDestroy(struct PlayState* play)
@@ -135,7 +135,7 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
     Input* input = play->state.input;
     func[play->sceneDrawConfig](play);  
 
-    //vars.funcTablePtr->faultDrawText(25, 25, "Addr: %x %x", vars.gameVersion, (u32)engMsg_Table[vars.gameVersion]);
+    //vars.funcTablePtr->faultDrawText(25, 25, "Addr: %x", GET_LEN(_Font_LoadChar));
     Draw64DDDVDLogo(play);
 
     if (vars.funcTablePtr->saveContext->showTitleCard && vars.titleCardAddr)
