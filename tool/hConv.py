@@ -2,9 +2,31 @@
 import os
 import argparse
 
+def sanitize_symbol(name: str) -> str:
+    name = name.upper()
+    allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    result = []
+    last_was_underscore = False
+    for ch in name:
+        if ch in allowed:
+            result.append(ch)
+            last_was_underscore = False
+        else:
+            if not last_was_underscore:
+                result.append("_")
+                last_was_underscore = True
+
+    sym = "".join(result).strip("_")
+    if sym and sym[0].isdigit():
+        sym = "_" + sym
+
+    return sym
+
+
+
 def process_file(file_path, asm_file, header_file):
     file_name = os.path.basename(file_path)
-    symbol = file_name.upper().replace(".", "_")
+    symbol = sanitize_symbol(file_name)
 
     with open(file_path, "rb") as f:
         data = f.read()

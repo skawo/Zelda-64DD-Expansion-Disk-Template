@@ -154,7 +154,7 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
             {
                 DDRoom* entry = &scene->rooms[j];
 
-                if (entry->diskAddr == (uintptr_t)NULL)
+                if (!entry->diskAddr)
                     break;
 
                 vars.funcTablePtr->loadFromDisk(addr, entry->diskAddr, entry->size);
@@ -165,7 +165,7 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
         }
     }
 
-    // Prevent crashing when using the original data in 64DD Mode.
+    // Prevent crashing when using the ROM data in 64DD Mode.
     sceneTable[sceneId].unk_12 = 0;
     return &sceneTable[sceneId];
 }
@@ -187,13 +187,13 @@ void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 room
                 if (j == roomNum)
                 {
                     roomCtx->roomRequestAddr = addr;
-                    vars.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);                  // We're done loading!   
-                    
                     addr += entry->size;
+
                     u32 titleCardSize = scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart;
                     vars.titleCardAddr = titleCardSize ? addr : NULL;
-                    
-                    vars.funcTablePtr->loadFromDisk(vars.titleCardAddr, scene->entry.titleFile.vromStart, titleCardSize);                      
+                    vars.funcTablePtr->loadFromDisk(vars.titleCardAddr, scene->entry.titleFile.vromStart, titleCardSize); 
+
+                    vars.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);                  // We're done loading!                     
                     return;
                 }
 
@@ -202,6 +202,7 @@ void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 room
         }
     } 
 
+    // Regular room load from cartridge.
     u32 size = play->roomList.romFiles[roomNum].vromEnd - play->roomList.romFiles[roomNum].vromStart;
     vars.funcTablePtr->dmaMgrRequestAsync(&roomCtx->dmaRequest, roomCtx->roomRequestAddr,
                                           play->roomList.romFiles[roomNum].vromStart, size, 0, &roomCtx->loadQueue, NULL);
