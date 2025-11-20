@@ -45,7 +45,7 @@ void FontLoadChar_64DDIPL(Font* font, u8 character, u16 codePointIndex)
     {
         s32 offset = character * FONT_CHAR_TEX_SIZE;
         vars.funcTablePtr->dmaMgrRequestSync(&font->charTexBuf[codePointIndex], 
-                                            (uintptr_t)(fontWidths_Table[vars.gameVersion] + offset), 
+                                            (uintptr_t)(nesFont_Table[vars.gameVersion] + offset), 
                                             FONT_CHAR_TEX_SIZE);
     }
     else
@@ -55,6 +55,6 @@ void FontLoadChar_64DDIPL(Font* font, u8 character, u16 codePointIndex)
                                            DDROM_FONT_START + offset, 
                                            FONT_CHAR_TEX_SIZE);
     }
-}
+} 
 
 STUB_FUNC(_Font_LoadChar, FontLoadChar_64DDIPL);

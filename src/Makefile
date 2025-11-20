@@ -82,7 +82,7 @@ filesystem/filesystem.o: filesystem/filesystem.s
 	@echo "Compiling filesystem..."
 	@$(CC) -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 
-diskCode/diskCode.o: diskCode/diskCode.c
+diskCode/diskCode.o: diskCode/diskCode.c diskCode/functionReplacements.c diskCode/versionedCode.c diskCode/ddScenes.c
 	@echo "Compiling diskCode..."
 	@$(CC) -DPREFIX=ram_ -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 
