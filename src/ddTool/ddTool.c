@@ -8,13 +8,16 @@ typedef struct Yaz0Header
     u32 uncompDataOffset;
 } Yaz0Header;
 
-void ddMemcpy(u8* src, u8* dst, int n)
+void ddMemcpy(void* src, void* dst, int n)
 {
+    u8* p1 = (u8*)src;
+    u8* p2 = (u8*)dst;
+
     for (int i = 0; i < n; i++)
     {
-        *dst = *src;
-        dst++;
-        src++;            
+        *p2 = *p1;
+        p1++;
+        p2++;            
     }    
 }
 
@@ -99,3 +102,52 @@ void ddYaz0_Decompress(u8* src, u8* dst, int compr_size)
     }
     while (dst != dstEnd);
 }
+
+u16 ddGetSJisIndex(u8 c, bool normalize) 
+{
+    if (c >= '0' && c <= '9')
+        return 146 + (c - '0');
+    else if (c >= 'A' && c <= 'Z')
+        return 156 + (c - 'A');
+    else if (c >= 'a' && c <= 'z')
+        return 182 + (c - 'a');
+    else if (c == ' ')
+        return 0;
+
+    switch (c) 
+    {
+        case 33: return 9;    // !
+        case 34: return 76;   // "
+        case 35: return 83;   // #
+        case 36: return 79;   // $
+        case 37: return 82;   // %
+        case 38: return 84;   // &
+        case 39: return 75;   // '
+        case 40: return 41;   // (
+        case 41: return 42;   // )
+        case 42: return 85;   // *
+        case 43: return 59;   // +
+        case 44: return 3;    // ,
+        case 45: return 60;   // -     
+        case 46: return 4;    // .
+        case 47: return 30;   // /
+        case 58: return 6;    // :
+        case 59: return 7;    // ;
+        case 60: return 49;   // <
+        case 62: return 50;   // >
+        case 63: return 8;    // ?
+        case 91: return 45;   // [
+        case 92: return 78;   // ¥
+        case 93: return 31;   // (\)
+        case 94: return 117;  // ^
+        case 95: return 17;   // _
+        case 96: return 37;   // `
+        case 123: return 47;  // {
+        case 124: return 35;  // |
+        case 125: return 48;  // }
+        case 126: return 32;  // ~
+    }
+    
+    return 0xFFFF;
+}
+

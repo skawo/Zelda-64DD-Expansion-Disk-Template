@@ -137,6 +137,8 @@ typedef struct globals64DD
 
 } globals64DD;
 
+globals64DD vars;
+
 void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr);
 void Disk_Destroy();
 void Disk_PlayInit(struct PlayState* play);

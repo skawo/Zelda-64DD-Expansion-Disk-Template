@@ -1,6 +1,6 @@
 #include "diskCode.h"
-#include "versionedCode.c"
 #include "ddScenes.c"
+#include "functionReplacements.c"
 
 __attribute__((section(".codeHeader")))
 char Header[] = "ZELDA_DD";
@@ -82,11 +82,11 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     for (int i = NTSC_1_0; i <= NTSC_1_2; i++)
     {
         if (funcTablePtr_Table[i - 1] == (void*)funcTablePtr)
-            vars.gameVersion = i;
+            vars.gameVersion = i - 1;
     }
 
     // If no valid version detected, show error screen and hang.
-    if (vars.gameVersion < NTSC_1_0)
+    if (vars.gameVersion < 0)
         ShowErrorScreen(ERROR_VERSION_YAZ0, ERROR_VERSION_YAZ0_LEN);
 
     SaveContext* sContext = vars.funcTablePtr->saveContext;
@@ -119,6 +119,8 @@ void Disk_GameState(struct GameState* state)
 void Disk_PlayInit(struct PlayState* play)
 {
     vars.play = play;
+
+    //REPLACE_FUNC(_Font_LoadChar, Font_LoadChar_Table, 0x50);
 }
 
 void Disk_PlayDestroy(struct PlayState* play)
@@ -133,7 +135,7 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
     Input* input = play->state.input;
     func[play->sceneDrawConfig](play);  
 
-    //vars.funcTablePtr->faultDrawText(25, 25, "Addr: %x", vars.test);
+    //vars.funcTablePtr->faultDrawText(25, 25, "Addr: %x %x", vars.gameVersion, (u32)engMsg_Table[vars.gameVersion]);
     Draw64DDDVDLogo(play);
 
     if (vars.funcTablePtr->saveContext->showTitleCard && vars.titleCardAddr)
@@ -221,7 +223,7 @@ s32 Disk_GetENGMessage(struct Font* font)
             SpawnArwing(vars.play);
     }
     else
-        vars.funcTablePtr->dmaMgrRequestSync(font->msgBuf, (uintptr_t)(font->msgOffset + (u32)engMsg_Table[vars.gameVersion]), font->msgLength);  
+        vars.funcTablePtr->dmaMgrRequestSync(font->msgBuf, (uintptr_t)(font->msgOffset + engMsg_Table[vars.gameVersion]), font->msgLength); 
 
     return 1;
 }
