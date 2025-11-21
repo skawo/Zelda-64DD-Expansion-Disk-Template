@@ -23,12 +23,12 @@ def main():
 
     args = parser.parse_args()
 
-    py_cmd = "python3" if platform.system() == "Linux" else "py -3"
+    py_cmd = sys.executable
     make_cmd = "make clean" if args.clean else "make"
 
     if args.clean == False and (args.skipfs == False or args.onlyfs):
         run(
-            f'{py_cmd} tool/hConv.py filesystem src/filesystem '
+            f'\"{py_cmd}\" tool/hConv.py filesystem src/filesystem '
             '--priority error_screens/Error_IPL.yaz0 '
             '--extensions zmap,zscene,bin,yaz0,tbl'
         )
