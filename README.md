@@ -18,7 +18,7 @@ Options may be passed to build.sh:
 
 # Adding files
 Simply drop in .zscene, .zmap, .bin or .yaz files into the filesystem directory.
-(Additional extensions can be added by editing <i>tools/hConv.py</i>)
+(Additional extensions can be added by editing the <i>build.sh</i> script)
 
 After running .build.sh, headers will be generated in <i>include/fileHeaders</i> which should be included in the filesystem.c file.
 
