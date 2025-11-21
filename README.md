@@ -5,22 +5,22 @@ Provided is a general working template with rudimentary error handling and a few
 This code has been created using the excellent <a href="https://github.com/LuigiBlood/zelda_dawn_dusk">Zelda: Dawn and Dusk</a> mod by Captain Seedy-Eye and LuigiBlood as a guide.
 
 # Building
-Requires Python 3 and WSL/Linux.
+Requires Python 3 and make.
 
 1. Extract the toolchain archives found in tool/gcc.
-2. Run build.sh found in the repository root.
+2. Run build.py found in the repository root.
 
 Options may be passed to build.sh:
    * "USA", "USA-DEV", "USA-D64", "JPN", "JPN-DEV", "JPN-D64" - Build target
-   * "clean" - Runs make clean before building the disk
-   * "nofs" - Foregoes building the filesystem (to speed up compilation once a lot of files have been added).
-   * "justfs" - Just generates the filesystem (for when a new file is added, to just generate the necessary symbols).
+   * "-clean" - Runs make clean before building the disk
+   * "-skipfs" - Foregoes building the filesystem (to speed up compilation once a lot of files have been added).
+   * "-fs" - Only generates the filesystem (for when a new file is added, to just generate the necessary symbols).
 
 # Adding files
 Simply drop in .zscene, .zmap, .bin or .yaz files into the filesystem directory.
-(Additional extensions can be added by editing <i>tools/hConv.py</i>)
+(Additional extensions can be added by editing the <i>build.sh</i> script)
 
-After running .build.sh, headers will be generated in <i>include/fileHeaders</i> which should be included in the filesystem.c file.
+After running .build.py, headers will be generated in <i>include/fileHeaders</i> which should be included in the filesystem.c file.
 
 Afterwards, files can be loaded from the disk using the appropriate function (see the <i>ShowErrorScreen</i> function in <i>diskCode.c</i> for an example).
 
