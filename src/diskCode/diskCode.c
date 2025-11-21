@@ -44,12 +44,13 @@ ddHookTable hookTable =
     .setMessageTables           = NULL,
     .unk_5C                     = { 0 },
     .loadCreditsMsg             = NULL,
-    .loadJapaneseMsg            = NULL,
-    .loadEnglishMsg             = Disk_GetENGMessage,
 #if OOT_PAL
     .loadEnglishMsg             = NULL,
     .loadGermanMsg              = NULL,
     .loadFrenchMsg              = NULL,
+#else
+    .loadJapaneseMsg            = NULL,
+    .loadEnglishMsg             = Disk_GetENGMessage,
 #endif
     .sceneDraw                  = Disk_SceneDraw,
     .asyncDma                   = NULL,
