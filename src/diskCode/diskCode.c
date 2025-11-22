@@ -78,7 +78,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
  
     vars.funcTablePtr = funcTablePtr;
     vars.hookTablePtr = hookTablePtr;    
-
+    
     // Check game version by comparing the address of the funcTablePtr.
     for (int i = NTSC_1_0; i <= NTSC_1_2; i++)
     {
@@ -144,9 +144,9 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
     if (play->msgCtx.textId == 0x31F)
     {
         __LOCTime time;
-        __locReadTimer_Versioned(vars.gameVersion, &time);
+        v__locReadTimer(vars.gameVersion, &time);
         char msgString[12] = "00:00:00";
-        sprintf_Versioned(vars.gameVersion, msgString, "%02x:%02x:%02x", time.hour, time.minute, time.second);
+        v_sprintf(vars.gameVersion, msgString, "%02x:%02x:%02x", time.hour, time.minute, time.second);
 
         for (int i = 0; i < 8; i++)
             FontLoadChar_ROM(&play->msgCtx.font, msgString[i] - 0x20, i * FONT_CHAR_TEX_SIZE);
@@ -338,11 +338,11 @@ void Draw64DDDVDLogo(struct PlayState* play)
 
 void SpawnArwing(struct PlayState* play)
 {
-    Audio_PlaySfxGeneral_Versioned(vars.gameVersion, NA_SE_SY_KINSTA_MARK_APPEAR, &vars.defaultSfxPos, 4, 
+    v_Audio_PlaySfxGeneral(vars.gameVersion, NA_SE_SY_KINSTA_MARK_APPEAR, &vars.defaultSfxPos, 4, 
                                     &vars.defaultFreqAndVolScale, &vars.defaultFreqAndVolScale, &vars.defaultReverb);
     
     Player* player = GET_PLAYER(play);
-    Actor_Spawn_Versioned(vars.gameVersion, &play->actorCtx, play, ACTOR_EN_CLEAR_TAG, player->actor.world.pos.x,
+    v_Actor_Spawn(vars.gameVersion, &play->actorCtx, play, ACTOR_EN_CLEAR_TAG, player->actor.world.pos.x,
                             player->actor.world.pos.y + 50.0f, player->actor.world.pos.z, 0, 0, 0, 0); 
 }
 
@@ -351,10 +351,10 @@ void SpawnArwing(struct PlayState* play)
 
 void _isPrintfInit() 
 {
-    vars.sISVHandle = osCartRomInit_Versioned(vars.gameVersion);
-    osEPiWriteIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, 0);
-    osEPiWriteIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, 0);
-    osEPiWriteIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, ASCII_TO_U32('I', 'S', '6', '4'));
+    vars.sISVHandle = v_osCartRomInit(vars.gameVersion);
+    v_osEPiWriteIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, 0);
+    v_osEPiWriteIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, 0);
+    v_osEPiWriteIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, ASCII_TO_U32('I', 'S', '6', '4'));
 }
 
 void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count) 
@@ -364,14 +364,14 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count)
     s32 start;
     s32 end;
 
-    osEPiReadIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, &data);
+    v_osEPiReadIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, &data);
 
     if (data != ASCII_TO_U32('I', 'S', '6', '4')) 
         return (void*)1;
 
-    osEPiReadIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, &data);
+    v_osEPiReadIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, &data);
     pos = data;
-    osEPiReadIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, &data);
+    v_osEPiReadIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, &data);
     start = data;
     end = start + count;
 
@@ -394,8 +394,8 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count)
 
         if (*str) 
         {
-            osEPiReadIo_Versioned(vars.gameVersion, vars.sISVHandle, addr, &data);
-            osEPiWriteIo_Versioned(vars.gameVersion, vars.sISVHandle, addr, (*str << shift) | (data & ~(0xFF << shift)));
+            v_osEPiReadIo(vars.gameVersion, vars.sISVHandle, addr, &data);
+            v_osEPiWriteIo(vars.gameVersion, vars.sISVHandle, addr, (*str << shift) | (data & ~(0xFF << shift)));
 
             start++;
             if (start >= 0xFFE0) 
@@ -405,7 +405,7 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count)
         str++;
     }
 
-    osEPiWriteIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, start);
+    v_osEPiWriteIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, start);
 
     return (void*)1;
 }

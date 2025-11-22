@@ -33,37 +33,37 @@ VERSIONED_TABLE_VAL_NAME(nesFont, _nes_font_staticSegmentRomStart);
 VERSIONED_TABLE_VAL_NAME(engMsg, _nes_message_data_staticSegmentRomStart);
 
 
-#define Audio_PlaySfxGeneral_Versioned(gameVer, sfxId, pos, token, freqScale, vol, reverbAdd) \
+#define v_Audio_PlaySfxGeneral(gameVer, sfxId, pos, token, freqScale, vol, reverbAdd) \
     (((void (*)(u16, Vec3f*, u8, f32*, f32*, s8*)) \
         Audio_PlaySfxGeneral_Table[(gameVer)])(sfxId, pos, token, freqScale, vol, reverbAdd))
 
-#define Actor_Spawn_Versioned(gameVer, actorCtx, play, actorId, posX, posY, posZ, rotX, rotY, rotZ, params) \
+#define v_Actor_Spawn(gameVer, actorCtx, play, actorId, posX, posY, posZ, rotX, rotY, rotZ, params) \
     (((void (*)(ActorContext*, PlayState*, s16, f32, f32, f32, s16, s16, s16, s16)) \
         Actor_Spawn_Table[(gameVer)])(actorCtx, play, actorId, posX, posY, posZ, rotX, rotY, rotZ, params))
 
-#define osEPiWriteIo_Versioned(gameVer, handle, devAddr, data) \
+#define v_osEPiWriteIo(gameVer, handle, devAddr, data) \
     (((s32 (*)(OSPiHandle*, u32, u32)) \
         osEPiWriteIo_Table[(gameVer)])(handle, devAddr, data))
 
-#define osEPiReadIo_Versioned(gameVer, handle, devAddr, data) \
+#define v_osEPiReadIo(gameVer, handle, devAddr, data) \
     (((s32 (*)(OSPiHandle*, u32, u32*)) \
         osEPiReadIo_Table[(gameVer)])(handle, devAddr, data))
 
-#define osCartRomInit_Versioned(gameVer) \
+#define v_osCartRomInit(gameVer) \
     (((OSPiHandle* (*)()) \
         osCartRomInit_Table[(gameVer)])())
 
-#define __locReadTimer_Versioned(gameVer, time) \
+#define v__locReadTimer(gameVer, time) \
     (((u8 (*)(__LOCTime*)) \
         __locReadTimer_Table[(gameVer)])(time))
 
-#define __locSetTimer_Versioned(gameVer, time) \
+#define v__locSetTimer(gameVer, time) \
     (((u8 (*)(__LOCTime*)) \
         __locSetTimer_Table[(gameVer)])(time))
 
-#define sprintf_Versioned(gameVer, dst, fmt, ...) \
+#define v_sprintf(gameVer, dst, fmt, ...) \
     (((int (*)(char*, const char*, ...))sprintf_Table[gameVer])((dst), (fmt), __VA_ARGS__))
 
-#define bcopy_Versioned(gameVer, __src, __dest, __n) \
+#define v_bcopy(gameVer, __src, __dest, __n) \
     (((void (*)(u8, const void*, void*, int)) \
         bcopy_Table[(gameVer)])(__src, __dest, __n))
