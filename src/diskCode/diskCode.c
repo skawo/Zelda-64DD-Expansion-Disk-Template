@@ -102,7 +102,10 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     else if (ddMemcmp(sContext->unk_1358, SAVE_ID, 4))      // Save from another disk.
         ShowErrorScreen(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
 
-    REPLACE_FUNC(_Font_LoadChar, Font_LoadChar_Table);
+    //REPLACE_FUNC(_Font_LoadChar);
+
+    _isPrintfInit();
+    is64Printf("64DD Ready!\n");
 }
 
 void Disk_Destroy()
@@ -136,7 +139,19 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
     Input* input = play->state.input;
     func[play->sceneDrawConfig](play);  
 
-    //vars.funcTablePtr->faultDrawText(25, 25, "Addr: %x", GET_LEN(_Font_LoadChar));
+    //vars.funcTablePtr->faultDrawText(25, 25, msgString);
+
+    if (play->msgCtx.textId == 0x31F)
+    {
+        __LOCTime time;
+        __locReadTimer_Versioned(vars.gameVersion, &time);
+        char msgString[12] = "00:00:00";
+        sprintf_Versioned(vars.gameVersion, msgString, "%02x:%02x:%02x", time.hour, time.minute, time.second);
+
+        for (int i = 0; i < 8; i++)
+            FontLoadChar_ROM(&play->msgCtx.font, msgString[i] - 0x20, i * FONT_CHAR_TEX_SIZE);
+    }
+
     Draw64DDDVDLogo(play);
 
     if (vars.funcTablePtr->saveContext->showTitleCard && vars.titleCardAddr)
@@ -222,6 +237,10 @@ s32 Disk_GetENGMessage(struct Font* font)
         
         if (vars.play)
             SpawnArwing(vars.play);
+    }
+    else if (msgC->textId == 0x31F)
+    {
+        ddMemcpy("00:00:00 is the current real time!\x02", font->msgBuf, 200);
     }
     else
         vars.funcTablePtr->dmaMgrRequestSync(font->msgBuf, (uintptr_t)(font->msgOffset + engMsg_Table[vars.gameVersion]), font->msgLength); 
@@ -325,4 +344,78 @@ void SpawnArwing(struct PlayState* play)
     Player* player = GET_PLAYER(play);
     Actor_Spawn_Versioned(vars.gameVersion, &play->actorCtx, play, ACTOR_EN_CLEAR_TAG, player->actor.world.pos.x,
                             player->actor.world.pos.y + 50.0f, player->actor.world.pos.z, 0, 0, 0, 0); 
+}
+
+#define gISVDbgPrnAdrs ((ISVDbg*)0xB3FF0000)
+#define ASCII_TO_U32(a, b, c, d) ((u32)((a << 24) | (b << 16) | (c << 8) | (d << 0)))
+
+void _isPrintfInit() 
+{
+    vars.sISVHandle = osCartRomInit_Versioned(vars.gameVersion);
+    osEPiWriteIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, 0);
+    osEPiWriteIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, 0);
+    osEPiWriteIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, ASCII_TO_U32('I', 'S', '6', '4'));
+}
+
+void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count) 
+{
+    u32 data;
+    s32 pos;
+    s32 start;
+    s32 end;
+
+    osEPiReadIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, &data);
+
+    if (data != ASCII_TO_U32('I', 'S', '6', '4')) 
+        return (void*)1;
+
+    osEPiReadIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, &data);
+    pos = data;
+    osEPiReadIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, &data);
+    start = data;
+    end = start + count;
+
+    if (end >= 0xFFE0) 
+    {
+        end -= 0xFFE0;
+        if (pos < end || start < pos) 
+            return (void*)1;
+    } 
+    else 
+    {
+        if (start < pos && pos < end)
+            return (void*)1;
+    }
+
+    while (count) 
+    {
+        u32 addr = (u32)&gISVDbgPrnAdrs->data + (start & 0xFFFFFFC);
+        s32 shift = ((3 - (start & 3)) * 8);
+
+        if (*str) 
+        {
+            osEPiReadIo_Versioned(vars.gameVersion, vars.sISVHandle, addr, &data);
+            osEPiWriteIo_Versioned(vars.gameVersion, vars.sISVHandle, addr, (*str << shift) | (data & ~(0xFF << shift)));
+
+            start++;
+            if (start >= 0xFFE0) 
+                start -= 0xFFE0;
+        }
+        count--;
+        str++;
+    }
+
+    osEPiWriteIo_Versioned(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, start);
+
+    return (void*)1;
+}
+
+void is64Printf(const char* fmt, ...) 
+{
+    va_list args;
+    va_start(args, fmt);
+
+    vars.funcTablePtr->printf(_is_proutSyncPrintf, NULL, fmt, args);
+
+    va_end(args);
 }

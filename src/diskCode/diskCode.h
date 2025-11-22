@@ -134,10 +134,30 @@ typedef struct globals64DD
     f32 defaultFreqAndVolScale;
     s8 defaultReverb;
     void* titleCardAddr;
+    OSPiHandle* sISVHandle;
 
 } globals64DD;
 
 globals64DD vars;
+
+typedef struct ISVDbg 
+{
+    /* 0x00 */ u32 magic; // "IS64"
+    /* 0x04 */ u32 get;
+    /* 0x08 */ u8 unk_08[0xC];
+    /* 0x14 */ u32 put;
+    /* 0x18 */ u8 unk_18[0x8];
+    /* 0x20 */ u8 data[0xFFE0];
+} ISVDbg; // size = 0x10000
+
+typedef struct {
+    /* 0x0 */ u8 year;
+    /* 0x1 */ u8 month;
+    /* 0x2 */ u8 day;
+    /* 0x3 */ u8 hour;
+    /* 0x4 */ u8 minute;
+    /* 0x5 */ u8 second;
+} __LOCTime;
 
 void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr);
 void Disk_Destroy();
@@ -156,10 +176,9 @@ void DrawRect(Gfx** gfxp, u8 r, u8 g, u8 b, u32 PosX, u32 PosY, u32 Sizex, u32 S
 void ShowErrorScreen(void* graphic, u32 graphicLen);
 void Draw64DDDVDLogo(struct PlayState* play);
 void SpawnArwing(struct PlayState* play);
-
-void Audio_PlaySfxGeneral_Versioned(u8 gameVer, u16 sfxId, Vec3f* pos, u8 token, f32* freqScale, f32* vol, s8* reverbAdd);
-void Actor_Spawn_Versioned(u8 gameVer, ActorContext* actorCtx, PlayState* play, s16 actorId, f32 posX, f32 posY, f32 posZ, s16 rotX, s16 rotY, s16 rotZ, s16 params);
-void bcopy_Versioned(u8 gameVer, const void* __src, void* __dest, int __n);
+void _isPrintfInit();
+void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count);
+void is64Printf(const char* fmt, ...);
 
 extern void* __Disk_Init_K1;
 extern void* __Disk_Start;

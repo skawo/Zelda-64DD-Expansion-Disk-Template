@@ -32,29 +32,36 @@
 #define GET_LEN(stub_name) ((u32)&stub_name##end - (u32)&stub_name)
 
 // Replace the destination function with the stub
-#define REPLACE_FUNC(stub_name, dst_table) \
-    ddMemcpy(&stub_name, (dst_table)[vars.gameVersion], GET_LEN(stub_name)); \
+#define REPLACE_FUNC(stub_name) \
+    ddMemcpy(&stub_name, (stub_name##_Table)[vars.gameVersion], GET_LEN(stub_name)); \
     vars.funcTablePtr->osWritebackDCacheAll(); \
-    vars.funcTablePtr->osInvalICache((dst_table)[vars.gameVersion], GET_LEN(stub_name)); 
+    vars.funcTablePtr->osInvalICache((stub_name##_Table)[vars.gameVersion], GET_LEN(stub_name)); 
 
-void FontLoadChar_64DDIPL(Font* font, u8 character, u16 codePointIndex)
+
+void FontLoadChar_64DDIPL(Font* font, u8 characterIndex, u16 codePointIndex)
+{
+    s32 offset = characterIndex * FONT_CHAR_TEX_SIZE;
+    vars.funcTablePtr->dmaFromDriveRom(&font->charTexBuf[codePointIndex], 
+                                        DDROM_FONT_START + offset, 
+                                        FONT_CHAR_TEX_SIZE);    
+}
+
+void FontLoadChar_ROM(Font* font, u8 characterIndex, u16 codePointIndex)
+{
+    s32 offset = characterIndex * FONT_CHAR_TEX_SIZE;
+    vars.funcTablePtr->dmaMgrRequestSync(&font->charTexBuf[codePointIndex], 
+                                        (uintptr_t)(nesFont_Table[vars.gameVersion] + offset), 
+                                        FONT_CHAR_TEX_SIZE);  
+}
+
+void FontLoadCharReplacement(Font* font, u8 character, u16 codePointIndex)
 {
     u16 index = ddGetSJisIndex(character + 0x20, false);
 
     if (index == 0xFFFF)
-    {
-        s32 offset = character * FONT_CHAR_TEX_SIZE;
-        vars.funcTablePtr->dmaMgrRequestSync(&font->charTexBuf[codePointIndex], 
-                                            (uintptr_t)(nesFont_Table[vars.gameVersion] + offset), 
-                                            FONT_CHAR_TEX_SIZE);
-    }
+        FontLoadChar_ROM(font, index, codePointIndex);
     else
-    {
-        s32 offset = index * FONT_CHAR_TEX_SIZE;
-        vars.funcTablePtr->dmaFromDriveRom(&font->charTexBuf[codePointIndex], 
-                                           DDROM_FONT_START + offset, 
-                                           FONT_CHAR_TEX_SIZE);
-    }
+        FontLoadChar_64DDIPL(font, index, codePointIndex);
 } 
 
-STUB_FUNC(_Font_LoadChar, FontLoadChar_64DDIPL);
+STUB_FUNC(_Font_LoadChar, FontLoadCharReplacement);
