@@ -102,7 +102,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     else if (ddMemcmp(sContext->unk_1358, SAVE_ID, 4))      // Save from another disk.
         ShowErrorScreen(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
 
-    //REPLACE_FUNC(_Font_LoadChar);
+    REPLACE_FUNC(_Font_LoadChar);
 
     _isPrintfInit();
     is64Printf("64DD Ready!\n");
