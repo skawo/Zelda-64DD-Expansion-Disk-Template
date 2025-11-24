@@ -1,0 +1,67 @@
+[
+  {
+    "decl": "void (*audioPlaySfxGeneral)(u16, Vec3f*, u8, f32*, f32*, s8*)",
+    "symbol": "Audio_PlaySfxGeneral"
+  },
+  {
+    "decl": "void (*actorSpawn)(ActorContext*, PlayState*, s16, f32, f32, f32, s16, s16, s16, s16)",
+    "symbol": "Actor_Spawn"
+  },
+  {
+    "decl": "void (*bcopy)(u8, const void*, void*, int)",
+    "symbol": "bcopy"
+  },
+  {
+    "decl": "void* CodeSegmentStart",
+    "symbol": "_codeSegmentStart"
+  },
+  {
+    "decl": "void* funcTablePtr",
+    "symbol": "D_800FEE70"
+  },
+  {
+    "decl": "void (*fontLoadChar)(u16)",
+    "symbol": "Font_LoadChar"
+  },
+  {
+    "decl": "f32* sFontWidths",
+    "symbol": "sFontWidths"
+  },
+  {
+    "decl": "s32 (*osEPiWriteIo)(OSPiHandle*, u32, u32)",
+    "symbol": "osEPiWriteIo"
+  },
+  {
+    "decl": "s32 (*osEPiReadIo)(OSPiHandle*, u32, u32*)",
+    "symbol": "osEPiReadIo"
+  },
+  {
+    "decl": "OSPiHandle* (*osCartRomInit)()",
+    "symbol": "osCartRomInit"
+  },
+  {
+    "decl": "u8 (*locReadTimer)(__LOCTime*)",
+    "symbol": "__locReadTimer"
+  },
+  {
+    "decl": "u8 (*locSetTimer)(__LOCTime*)",
+    "symbol": "__locSetTimer"
+  },
+  {
+    "decl": "int (*sprintf)(char*, const char*, ...)",
+    "symbol": "sprintf"
+  },
+  {
+    "decl": "u32 ENGLISH_MESSAGE_DATA",
+    "symbol": "_nes_message_data_staticSegmentRomStart"
+  },
+  {
+    "decl": "u32 ENGLISH_FONT",
+    "symbol": "_nes_font_staticSegmentRomStart"
+  },
+  {
+    "decl": "void* funcTablePtr",
+    "symbol": "D_800FEE70",
+    "static": true
+  }
+]

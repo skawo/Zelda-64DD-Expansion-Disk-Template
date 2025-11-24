@@ -1,0 +1,58 @@
+#include "../diskCode/vtables.h"
+
+VersionVTable VTABLE_1_0 =
+{
+    .audioPlaySfxGeneral = (void*)0x800C806C,
+    .actorSpawn = (void*)0x80025110,
+    .bcopy = (void*)0x80004DC0,
+    .CodeSegmentStart = (void*)0x800110A0,
+    .funcTablePtr = (void*)0x800FEE70,
+    .fontLoadChar = (void*)0x8005BCE4,
+    .sFontWidths = (void*)0x80112F40,
+    .osEPiWriteIo = (void*)0x80005800,
+    .osEPiReadIo = (void*)0x80005630,
+    .osCartRomInit = (void*)0x80005680,
+    .locReadTimer = (void*)0x801CEE94,
+    .locSetTimer = (void*)0x801CF004,
+    .sprintf = (void*)0x800CE7B4,
+    .ENGLISH_MESSAGE_DATA = 0x0092D000,
+    .ENGLISH_FONT = 0x00928000,
+};
+
+VersionVTable VTABLE_1_1 =
+{
+    .audioPlaySfxGeneral = (void*)0x800C823C,
+    .actorSpawn = (void*)0x80025110,
+    .bcopy = (void*)0x80004DC0,
+    .CodeSegmentStart = (void*)0x800110A0,
+    .funcTablePtr = (void*)0x800FF030,
+    .fontLoadChar = (void*)0x8005BCE4,
+    .sFontWidths = (void*)0x80113100,
+    .osEPiWriteIo = (void*)0x80005800,
+    .osEPiReadIo = (void*)0x80005630,
+    .osCartRomInit = (void*)0x80005680,
+    .locReadTimer = (void*)0x801CF034,
+    .locSetTimer = (void*)0x801CF1A4,
+    .sprintf = (void*)0x800CE974,
+    .ENGLISH_MESSAGE_DATA = 0x0092D000,
+    .ENGLISH_FONT = 0x00928000,
+};
+
+VersionVTable VTABLE_1_2 =
+{
+    .audioPlaySfxGeneral = (void*)0x800C88BC,
+    .actorSpawn = (void*)0x80025750,
+    .bcopy = (void*)0x80004FD0,
+    .CodeSegmentStart = (void*)0x800116E0,
+    .funcTablePtr = (void*)0x800FF4B0,
+    .fontLoadChar = (void*)0x8005C374,
+    .sFontWidths = (void*)0x801135F0,
+    .osEPiWriteIo = (void*)0x80005B70,
+    .osEPiReadIo = (void*)0x80005840,
+    .osCartRomInit = (void*)0x800059F0,
+    .locReadTimer = (void*)0x801CF714,
+    .locSetTimer = (void*)0x801CF884,
+    .sprintf = (void*)0x800CEFF4,
+    .ENGLISH_MESSAGE_DATA = 0x0092D000,
+    .ENGLISH_FONT = 0x008ED000,
+};

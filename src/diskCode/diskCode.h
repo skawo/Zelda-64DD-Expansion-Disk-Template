@@ -12,6 +12,7 @@
 #include "../../include/sfx.h"
 #include "../../include/fault.h"
 #include "../ddTool/ddTool.h"
+#include "vtables.h"
 
 #include "../filesystem/filesystem.h"
 
@@ -139,25 +140,13 @@ typedef struct globals64DD
 } globals64DD;
 
 globals64DD vars;
+VersionVTable vtable;
 
-typedef struct ISVDbg 
-{
-    /* 0x00 */ u32 magic; // "IS64"
-    /* 0x04 */ u32 get;
-    /* 0x08 */ u8 unk_08[0xC];
-    /* 0x14 */ u32 put;
-    /* 0x18 */ u8 unk_18[0x8];
-    /* 0x20 */ u8 data[0xFFE0];
-} ISVDbg; // size = 0x10000
+extern VersionVTable* VTABLE_1_0;
+extern VersionVTable* VTABLE_1_1;
+extern VersionVTable* VTABLE_1_2;
 
-typedef struct {
-    /* 0x0 */ u8 year;
-    /* 0x1 */ u8 month;
-    /* 0x2 */ u8 day;
-    /* 0x3 */ u8 hour;
-    /* 0x4 */ u8 minute;
-    /* 0x5 */ u8 second;
-} __LOCTime;
+void* vTableDiskAddrs[] = {&VTABLE_1_0, &VTABLE_1_1, NULL, &VTABLE_1_2};
 
 void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr);
 void Disk_Destroy();

@@ -58,6 +58,7 @@ SECTIONS {
     {
         __romStart = .;
         KEEP(*filesystem.o(.text* .rodata* .data* .sdata* .bss* .sbss*))
+        KEEP(*vtables.o(.text* .rodata* .data* .sdata* .bss* .sbss*))
         . = ALIGN(32);
     } > ROM
     __romEnd = .;

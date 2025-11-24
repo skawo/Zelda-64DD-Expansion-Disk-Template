@@ -1,6 +1,7 @@
 #include "diskCode.h"
 #include "ddScenes.c"
-#include "functionReplacements.c"
+#include "static_vtables.c"
+#include "funcRepl.c"
 
 __attribute__((section(".codeHeader")))
 char Header[] = "ZELDA_DD";
@@ -82,7 +83,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     // Check game version by comparing the address of the funcTablePtr.
     for (int i = NTSC_1_0; i <= NTSC_1_2; i++)
     {
-        if (funcTablePtr_Table[i - 1] == (void*)funcTablePtr)
+        if (funcTablePtrs[i - 1] == (void*)funcTablePtr)
             vars.gameVersion = i - 1;
     }
 
@@ -90,6 +91,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     if (vars.gameVersion < 0)
         ShowErrorScreen(ERROR_VERSION_YAZ0, ERROR_VERSION_YAZ0_LEN);
 
+    vars.funcTablePtr->loadFromDisk(&vtable, (s32)vTableDiskAddrs[vars.gameVersion], sizeof(vtable));
     SaveContext* sContext = vars.funcTablePtr->saveContext;
 
     sContext->language = LANGUAGE_ENG;
@@ -102,7 +104,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     else if (ddMemcmp(sContext->unk_1358, SAVE_ID, 4))      // Save from another disk.
         ShowErrorScreen(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
 
-    REPLACE_FUNC(_Font_LoadChar);
+    REPLACE_FUNC(vtable.fontLoadChar, Font_LoadChar_Repl);
 
     _isPrintfInit();
     is64Printf("64DD Ready!\n");
@@ -144,9 +146,9 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
     if (play->msgCtx.textId == 0x31F)
     {
         __LOCTime time;
-        v__locReadTimer(vars.gameVersion, &time);
+        vtable.locReadTimer(&time);
         char msgString[12] = "00:00:00";
-        v_sprintf(vars.gameVersion, msgString, "%02x:%02x:%02x", time.hour, time.minute, time.second);
+        vtable.sprintf(msgString, "%02x:%02x:%02x", time.hour, time.minute, time.second);
 
         for (int i = 0; i < 8; i++)
             FontLoadChar_ROM(&play->msgCtx.font, msgString[i] - 0x20, i * FONT_CHAR_TEX_SIZE);
@@ -243,14 +245,13 @@ s32 Disk_GetENGMessage(struct Font* font)
         ddMemcpy("00:00:00 is the current real time!\x02", font->msgBuf, 200);
     }
     else
-        vars.funcTablePtr->dmaMgrRequestSync(font->msgBuf, (uintptr_t)(font->msgOffset + engMsg_Table[vars.gameVersion]), font->msgLength); 
+        vars.funcTablePtr->dmaMgrRequestSync(font->msgBuf, (uintptr_t)(font->msgOffset + vtable.ENGLISH_MESSAGE_DATA), font->msgLength); 
 
     return 1;
 }
 
 void Disk_SetMessageTables(struct MessageTableEntry** Japanese, struct MessageTableEntry** English, struct MessageTableEntry** Credits)
 {
-
 }
 
 // ===========================================================================================================
@@ -338,12 +339,12 @@ void Draw64DDDVDLogo(struct PlayState* play)
 
 void SpawnArwing(struct PlayState* play)
 {
-    v_Audio_PlaySfxGeneral(vars.gameVersion, NA_SE_SY_KINSTA_MARK_APPEAR, &vars.defaultSfxPos, 4, 
-                                    &vars.defaultFreqAndVolScale, &vars.defaultFreqAndVolScale, &vars.defaultReverb);
+    vtable.audioPlaySfxGeneral(NA_SE_SY_KINSTA_MARK_APPEAR, &vars.defaultSfxPos, 4, 
+                                                      &vars.defaultFreqAndVolScale, &vars.defaultFreqAndVolScale, &vars.defaultReverb);
     
     Player* player = GET_PLAYER(play);
-    v_Actor_Spawn(vars.gameVersion, &play->actorCtx, play, ACTOR_EN_CLEAR_TAG, player->actor.world.pos.x,
-                            player->actor.world.pos.y + 50.0f, player->actor.world.pos.z, 0, 0, 0, 0); 
+    vtable.actorSpawn(&play->actorCtx, play, ACTOR_EN_CLEAR_TAG, player->actor.world.pos.x,
+                                            player->actor.world.pos.y + 50.0f, player->actor.world.pos.z, 0, 0, 0, 0); 
 }
 
 #define gISVDbgPrnAdrs ((ISVDbg*)0xB3FF0000)
@@ -351,10 +352,10 @@ void SpawnArwing(struct PlayState* play)
 
 void _isPrintfInit() 
 {
-    vars.sISVHandle = v_osCartRomInit(vars.gameVersion);
-    v_osEPiWriteIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, 0);
-    v_osEPiWriteIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, 0);
-    v_osEPiWriteIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, ASCII_TO_U32('I', 'S', '6', '4'));
+    vars.sISVHandle = vtable.osCartRomInit();
+    vtable.osEPiWriteIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, 0);
+    vtable.osEPiWriteIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, 0);
+    vtable.osEPiWriteIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, ASCII_TO_U32('I', 'S', '6', '4'));
 }
 
 void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count) 
@@ -364,14 +365,14 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count)
     s32 start;
     s32 end;
 
-    v_osEPiReadIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, &data);
+    vtable.osEPiReadIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, &data);
 
     if (data != ASCII_TO_U32('I', 'S', '6', '4')) 
         return (void*)1;
 
-    v_osEPiReadIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, &data);
+    vtable.osEPiReadIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, &data);
     pos = data;
-    v_osEPiReadIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, &data);
+    vtable.osEPiReadIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, &data);
     start = data;
     end = start + count;
 
@@ -394,8 +395,8 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count)
 
         if (*str) 
         {
-            v_osEPiReadIo(vars.gameVersion, vars.sISVHandle, addr, &data);
-            v_osEPiWriteIo(vars.gameVersion, vars.sISVHandle, addr, (*str << shift) | (data & ~(0xFF << shift)));
+            vtable.osEPiReadIo(vars.sISVHandle, addr, &data);
+            vtable.osEPiWriteIo(vars.sISVHandle, addr, (*str << shift) | (data & ~(0xFF << shift)));
 
             start++;
             if (start >= 0xFFE0) 
@@ -405,7 +406,7 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count)
         str++;
     }
 
-    v_osEPiWriteIo(vars.gameVersion, vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, start);
+    vtable.osEPiWriteIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, start);
 
     return (void*)1;
 }

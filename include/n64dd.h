@@ -18,6 +18,26 @@ struct RoomContext;
 struct SaveContext;
 struct Scene;
 
+typedef struct ISVDbg 
+{
+    /* 0x00 */ u32 magic; // "IS64"
+    /* 0x04 */ u32 get;
+    /* 0x08 */ u8 unk_08[0xC];
+    /* 0x14 */ u32 put;
+    /* 0x18 */ u8 unk_18[0x8];
+    /* 0x20 */ u8 data[0xFFE0];
+} ISVDbg; // size = 0x10000
+
+
+typedef struct {
+    /* 0x0 */ u8 year;
+    /* 0x1 */ u8 month;
+    /* 0x2 */ u8 day;
+    /* 0x3 */ u8 hour;
+    /* 0x4 */ u8 minute;
+    /* 0x5 */ u8 second;
+} __LOCTime;
+
 // TODO Use the specific pointer types instead of void*
 typedef struct n64ddStruct_800FEE70_pointers {
     void* unk_00;
