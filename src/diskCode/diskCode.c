@@ -59,7 +59,6 @@ ddHookTable hookTable =
     .cutsceneSetScript          = NULL,
 };
 
-
 DDState dd = 
 {
     .play                     = (PlayState*)NULL,
@@ -89,7 +88,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     if (dd.gameVersion < 0)
         ShowErrorScreen(ERROR_VERSION_YAZ0, ERROR_VERSION_YAZ0_LEN);
     else
-        dd.funcTablePtr->loadFromDisk(&dd.vtable, (s32)vTableDiskAddrs[dd.gameVersion], sizeof(dd.vtable));
+        dd.funcTablePtr->loadFromDisk(&dd.vtable, (s32)vTableDiskAddrs[dd.gameVersion], sizeof(VersionVTable));
 
     SaveContext* sContext = dd.funcTablePtr->saveContext;
     sContext->language = LANGUAGE_ENG;
