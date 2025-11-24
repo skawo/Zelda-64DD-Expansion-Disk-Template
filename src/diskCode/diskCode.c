@@ -85,12 +85,13 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     }
 
     // If no valid version detected, show error screen and hang.
+    // Otherwise, load the vTable from disk.
     if (dd.gameVersion < 0)
         ShowErrorScreen(ERROR_VERSION_YAZ0, ERROR_VERSION_YAZ0_LEN);
+    else
+        dd.funcTablePtr->loadFromDisk(&dd.vtable, (s32)vTableDiskAddrs[dd.gameVersion], sizeof(dd.vtable));
 
-    dd.funcTablePtr->loadFromDisk(&dd.vtable, (s32)vTableDiskAddrs[dd.gameVersion], sizeof(dd.vtable));
     SaveContext* sContext = dd.funcTablePtr->saveContext;
-
     sContext->language = LANGUAGE_ENG;
     sContext->gameMode = GAMEMODE_NORMAL;
 
