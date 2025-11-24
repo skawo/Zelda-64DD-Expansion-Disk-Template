@@ -1,4 +1,5 @@
 #include "diskCode.h"
+
 #include "ddScenes.c"
 #include "static_vtables.c"
 #include "funcRepl.c"
@@ -40,10 +41,10 @@ ddHookTable hookTable =
     .kaleidoDestroy             = NULL,
     .kaleidoLoadDungeonMap      = NULL,
     .getSceneEntry              = Disk_GetSceneEntry,
-    .unk_4C                     = { 0 },
+    .unk_4C                     = { },
     .handleEntranceTriggers     = NULL,
     .setMessageTables           = NULL,
-    .unk_5C                     = { 0 },
+    .unk_5C                     = { },
     .loadCreditsMsg             = NULL,
 #if OOT_PAL
     .loadEnglishMsg             = NULL,
@@ -134,10 +135,8 @@ void Disk_PlayDestroy(struct PlayState* play)
 
 void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
 {
-    #define __gfxCtx (play->state.gfxCtx)
     func[play->sceneDrawConfig](play);  
-    
-    //vars.funcTablePtr->faultDrawText(25, 25, msgString);
+    //dd.funcTablePtr->faultDrawText(25, 25, "%x", writeTest);
     
     RestoreMapSelect(play);
     DoClockDisplayOnLinkHouseSign(play);
@@ -236,6 +235,12 @@ void Disk_SetMessageTables(struct MessageTableEntry** Japanese, struct MessageTa
 
 // ===========================================================================================================
 
+void LoadFromDisk_MusicSafe(void* dest, s32 offset, s32 size)
+{
+    *dd.vtable.haltMusicForDiskDMA = 1;
+    dd.funcTablePtr->loadFromDisk(dest, offset, size);    
+}
+
 void ShowErrorScreen(void* graphic, u32 graphicLen)
 {
     u32* viReg = (u32*)K0_TO_K1(VI_ORIGIN_REG);
@@ -261,7 +266,9 @@ void DrawRect(Gfx** gfxp, u8 r, u8 g, u8 b, u32 PosX, u32 PosY, u32 Sizex, u32 S
 
 void Draw64DDDVDLogo(struct PlayState* play)
 {
-    #define __gfxCtx (play->state.gfxCtx)
+    GraphicsContext* gfxCtx = play->state.gfxCtx;
+    OPEN_DISPS(gfxCtx, __FILE__, __LINE__);
+
     Gfx* gfxRef = OVERLAY_DISP;
 
     // Logo animation state
@@ -315,6 +322,7 @@ void Draw64DDDVDLogo(struct PlayState* play)
     DrawRect(&gfxRef, 255, 0, 255, currentX + 4*BLOCK_SIZE, posY + BLOCK_SIZE, BLOCK_SIZE, 3*BLOCK_SIZE);  // Right vertical
 
     OVERLAY_DISP = gfxRef;
+    CLOSE_DISPS(gfxCtx, __FILE__, __LINE__);
 }
 
 void SpawnArwing(struct PlayState* play)

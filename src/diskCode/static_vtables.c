@@ -1,4 +1,4 @@
-#include "vtables.h"
+#include "../filesystem/vtables.h"
 
 void* funcTablePtrs[] =
 {

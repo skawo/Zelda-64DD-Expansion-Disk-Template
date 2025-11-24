@@ -11,8 +11,8 @@ VERSION_SUFFIXES = {
     "1_2": "src/symbols1_2.h",
 }
 
-VTABLE_JSON = "src/diskCode/vtabledef.json"
-OUTPUT_HEADER = "src/diskCode/vtables.h"
+VTABLE_JSON = "src/filesystem/vtabledef.json"
+OUTPUT_HEADER = "src/filesystem/vtables.h"
 OUTPUT_SOURCE = "src/filesystem/vtables.c"
 OUTPUT_SC = "src/diskCode/static_vtables.c"
 
@@ -115,7 +115,7 @@ Path(OUTPUT_HEADER).write_text("\n".join(h_lines), encoding="utf-8")
 # ----------------------------
 
 sc_lines = []
-sc_lines.append('#include "vtables.h"')
+sc_lines.append('#include "../filesystem/vtables.h"')
 sc_lines.append("")
 
 for e in entries:
@@ -147,12 +147,12 @@ Path(OUTPUT_SC).write_text("\n".join(sc_lines), encoding="utf-8")
 # ----------------------------
 
 c_lines = []
-c_lines.append('#include "../diskCode/vtables.h"')
+c_lines.append('#include "vtables.h"')
 c_lines.append("")
 
 for ver in VERSION_LIST:
     symbols = version_symbols.get(ver, {})
-    c_lines.append(f"VersionVTable VTABLE_{ver} =")
+    c_lines.append(f"VersionVTable VTABLE_{ver} __attribute__((__aligned__(32))) =")
     c_lines.append("{")
 
     for e in entries:

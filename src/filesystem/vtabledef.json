@@ -83,5 +83,21 @@
   {
     "decl": "void (*mapSelectInit) (GameState* thisx)",
     "symbol": "MapSelect_Init"
-  }    
+  },
+  {
+    "decl": "Gfx* (*gfxOpen) (Gfx* gfx)",
+    "symbol": "Gfx_Open"
+  }, 
+  {
+    "decl": "Gfx* (*gfxClose) (Gfx* gfx, Gfx* dst)",
+    "symbol": "Gfx_Close"
+  },
+  {
+    "decl": "void* (*gfxAlloc) (Gfx** gfxP, u32 size)",
+    "symbol": "Gfx_Alloc"
+  },
+  {
+    "decl": "vu8* haltMusicForDiskDMA",
+    "symbol": "D_80121214"    
+  }
 ]

@@ -1,6 +1,6 @@
-#include "../diskCode/vtables.h"
+#include "vtables.h"
 
-VersionVTable VTABLE_1_0 =
+VersionVTable VTABLE_1_0 __attribute__((__aligned__(32))) =
 {
     .audioPlaySfxGeneral = (void*)0x800C806C,
     .actorSpawn = (void*)0x80025110,
@@ -22,9 +22,13 @@ VersionVTable VTABLE_1_0 =
     .gSfxDefaultReverb = (void*)0x801043A8,
     .titleCard_initPlaceName = (void*)0x800207C4,
     .mapSelectInit = (void*)0x80801C14,
+    .gfxOpen = (void*)0x800A1AA0,
+    .gfxClose = (void*)0x800A1AAC,
+    .gfxAlloc = (void*)0x800A1AC4,
+    .haltMusicForDiskDMA = (void*)0x80121214,
 };
 
-VersionVTable VTABLE_1_1 =
+VersionVTable VTABLE_1_1 __attribute__((__aligned__(32))) =
 {
     .audioPlaySfxGeneral = (void*)0x800C823C,
     .actorSpawn = (void*)0x80025110,
@@ -46,9 +50,13 @@ VersionVTable VTABLE_1_1 =
     .gSfxDefaultReverb = (void*)0x80104568,
     .titleCard_initPlaceName = (void*)0x800207C4,
     .mapSelectInit = (void*)0x80801C14,
+    .gfxOpen = (void*)0x800A1AB0,
+    .gfxClose = (void*)0x800A1ABC,
+    .gfxAlloc = (void*)0x800A1AD4,
+    .haltMusicForDiskDMA = (void*)0x801213D4,
 };
 
-VersionVTable VTABLE_1_2 =
+VersionVTable VTABLE_1_2 __attribute__((__aligned__(32))) =
 {
     .audioPlaySfxGeneral = (void*)0x800C88BC,
     .actorSpawn = (void*)0x80025750,
@@ -70,4 +78,8 @@ VersionVTable VTABLE_1_2 =
     .gSfxDefaultReverb = (void*)0x801049E8,
     .titleCard_initPlaceName = (void*)0x80020E04,
     .mapSelectInit = (void*)0x80801C14,
+    .gfxOpen = (void*)0x800A2180,
+    .gfxClose = (void*)0x800A218C,
+    .gfxAlloc = (void*)0x800A21A4,
+    .haltMusicForDiskDMA = (void*)0x80121AE4,
 };

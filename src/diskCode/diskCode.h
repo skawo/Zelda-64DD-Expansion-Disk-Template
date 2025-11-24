@@ -14,8 +14,8 @@
 #include "../../include/map_select_state.h"
 
 #include "../ddTool/ddTool.h"
-#include "vtables.h"
 
+#include "../filesystem/vtables.h"
 #include "../filesystem/filesystem.h"
 
 typedef struct ddFuncPointers ddFuncPointers;
@@ -166,6 +166,7 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count);
 void is64Printf(const char* fmt, ...);
 void DoClockDisplayOnLinkHouseSign(struct PlayState* play);
 void RestoreMapSelect(struct PlayState* play);
+void LoadFromDisk_MusicSafe(void* dest, s32 offset, s32 size);
 
 extern void* __Disk_Init_K1;
 extern void* __Disk_Start;

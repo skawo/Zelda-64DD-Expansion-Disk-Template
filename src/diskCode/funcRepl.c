@@ -73,5 +73,5 @@ STUB_FUNC(TitleCard_InitPlaceName_Repl);
 DD_FUNC_REPLACEMENTS
 (
     FUNC_REPL_ENTRY(dd.vtable.fontLoadChar, Font_LoadChar_Repl),   
-    FUNC_REPL_ENTRY(dd.vtable.titleCard_initPlaceName, TitleCard_InitPlaceName_Repl),     
+    FUNC_REPL_ENTRY(dd.vtable.titleCard_initPlaceName, TitleCard_InitPlaceName_Repl),        
 );

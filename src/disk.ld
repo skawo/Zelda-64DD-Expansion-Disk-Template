@@ -57,7 +57,7 @@ SECTIONS {
     .rom : AT(OFFSET) ALIGN(32) 
     {
         __romStart = .;
-        KEEP(*filesystem.o(.text* .rodata* .data* .sdata* .bss* .sbss*))
+        KEEP(*filesystem.o(.text* .rodata* .data* .sdata* .bss* .sbss*)) 
         KEEP(*vtables.o(.text* .rodata* .data* .sdata* .bss* .sbss*))
         . = ALIGN(32);
     } > ROM

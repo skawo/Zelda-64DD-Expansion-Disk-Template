@@ -26,7 +26,7 @@
 #define LEO_DISK_TYPE_5 5
 #define LEO_DISK_TYPE_6 6
 
-#define DISK_TYPE LEO_DISK_TYPE_6
+#define DISK_TYPE LEO_DISK_TYPE_2
 #define IPL_LBA_LOAD_AMOUNT 0x000A
 
 #if defined(DISKRELEASE_DEV) || !defined(DISKFORMAT_NDD)

@@ -86,7 +86,7 @@ filesystem/vtables.o: filesystem/vtables.c
 	@echo "Compiling vtables..."
 	@$(CC) -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 
-diskCode/diskCode.o: diskCode/diskCode.c diskCode/funcRepl.c diskCode/ddScenes.c
+diskCode/diskCode.o: diskCode/diskCode.c diskCode/funcRepl.c diskCode/ddScenes.c diskCode/static_vtables.c
 	@echo "Compiling diskCode..."
 	@$(CC) -DPREFIX=ram_ -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 

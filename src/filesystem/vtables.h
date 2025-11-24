@@ -34,6 +34,10 @@ typedef struct
     s8* gSfxDefaultReverb;
     void (*titleCard_initPlaceName) (PlayState* play, TitleCardContext* titleCtx, void* texture, s32 x, s32 y, s32 width, s32 height, s32 delay);
     void (*mapSelectInit) (GameState* thisx);
+    Gfx* (*gfxOpen) (Gfx* gfx);
+    Gfx* (*gfxClose) (Gfx* gfx, Gfx* dst);
+    void* (*gfxAlloc) (Gfx** gfxP, u32 size);
+    vu8* haltMusicForDiskDMA;
 } VersionVTable;
 
 #endif // VTABLES_H
