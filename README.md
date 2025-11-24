@@ -39,10 +39,6 @@ This also works for global variables of all kinds.
 You can overwrite any of the game's functions by adding your new function in funcRepl.c. The new function should use all of the original's arguments,
 in the same order. The new function can be any size.
 
-After implementing the new function, add a STUB_FUNC entry at the bottom of the file, passing the name of the new function:
-
-<i>STUB_FUNC(Function_Name)</i>
-
-Next, add an entry to the DD_FUNC_REPLACEMENTS macro, passing the vtable entry of the function to replace, and the name of the new function:
+After implementing the new function, add an entry to the DD_FUNC_REPLACEMENTS macro, passing the vtable entry of the function to replace, and the name of the new function:
 
 <i>FUNC_REPL_ENTRY(dd.vtable.someFunctionEntry, Function_Name)</i>
