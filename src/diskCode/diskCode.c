@@ -101,10 +101,9 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     else if (ddMemcmp(sContext->unk_1358, SAVE_ID, 4))      // Save from another disk.
         ShowErrorScreen(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
 
-    REPLACE_FUNC(dd.vtable.fontLoadChar, Font_LoadChar_Repl);
-    REPLACE_FUNC(dd.vtable.titleCard_initPlaceName, TitleCard_InitPlaceName_Repl);
-
     _isPrintfInit();
+    Functions_ReplaceAll(replFunctions, ARRAY_COUNT(replFunctions));
+
     is64Printf("64DD Ready!\n");
 }
 
@@ -116,6 +115,7 @@ void Disk_Destroy()
 void Disk_GameState(struct GameState* state)
 {
     SaveContext* sContext = dd.funcTablePtr->saveContext;
+    Input* input = &state->input[0];
 
     // We have no idea of the state the disk has left the game code, and so it's best to ask the player to reset.
     if (dd.play && dd.play->pauseCtx.promptChoice && dd.play->pauseCtx.state == PAUSE_STATE_GAME_OVER_FINISH)
@@ -135,23 +135,12 @@ void Disk_PlayDestroy(struct PlayState* play)
 void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
 {
     #define __gfxCtx (play->state.gfxCtx)
-    
-    Input* input = play->state.input;
     func[play->sceneDrawConfig](play);  
-
+    
     //vars.funcTablePtr->faultDrawText(25, 25, msgString);
-
-    if (play->msgCtx.textId == 0x31F)
-    {
-        __LOCTime time;
-        dd.vtable.locReadTimer(&time);
-        char msgString[12] = "00:00:00";
-        dd.vtable.sprintf(msgString, "%02x:%02x:%02x", time.hour, time.minute, time.second);
-
-        for (int i = 0; i < 8; i++)
-            FontLoadChar_ROM(&play->msgCtx.font, msgString[i] - 0x20, i * FONT_CHAR_TEX_SIZE);
-    }
-
+    
+    RestoreMapSelect(play);
+    DoClockDisplayOnLinkHouseSign(play);
     Draw64DDDVDLogo(play);
 }
 
@@ -202,13 +191,9 @@ void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 room
                 if (j == roomNum)
                 {
                     roomCtx->roomRequestAddr = addr;
-                    addr += entry->size;
 
-                    u32 titleCardSize = scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart;
-                    dd.titleCardAddr = titleCardSize ? addr : NULL;
-                    dd.funcTablePtr->loadFromDisk(dd.titleCardAddr, scene->entry.titleFile.vromStart, titleCardSize); 
-
-                    dd.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);                  // We're done loading!                     
+                    // We're done loading! 
+                    dd.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);                                      
                     return;
                 }
 
@@ -340,6 +325,32 @@ void SpawnArwing(struct PlayState* play)
     Player* player = GET_PLAYER(play);
     dd.vtable.actorSpawn(&play->actorCtx, play, ACTOR_EN_CLEAR_TAG, player->actor.world.pos.x,
                                             player->actor.world.pos.y + 50.0f, player->actor.world.pos.z, 0, 0, 0, 0); 
+}
+
+void DoClockDisplayOnLinkHouseSign(struct PlayState* play)
+{
+    if (play->msgCtx.textId == 0x31F)
+    {
+        __LOCTime time;
+        dd.vtable.locReadTimer(&time);
+        char msgString[12] = "00:00:00";
+        dd.vtable.sprintf(msgString, "%02x:%02x:%02x", time.hour, time.minute, time.second);
+
+        for (int i = 0; i < 8; i++)
+            FontLoadChar_ROM(&play->msgCtx.font, msgString[i] - 0x20, i * FONT_CHAR_TEX_SIZE);
+    }    
+}
+
+void RestoreMapSelect(struct PlayState* play)
+{
+    Input* input = play->state.input;
+
+    if (CHECK_BTN_ALL(input->cur.button, BTN_Z | BTN_R | BTN_L))
+    {
+        SET_NEXT_GAMESTATE(&play->state, dd.vtable.mapSelectInit, MapSelectState);
+        play->state.running = false;
+        return;
+    }    
 }
 
 #define gISVDbgPrnAdrs ((ISVDbg*)0xB3FF0000)

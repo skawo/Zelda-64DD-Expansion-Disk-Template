@@ -47,7 +47,7 @@ typedef struct DDScene
         END_ROOMLIST        \
     }
 
-#define DD_SCENES(...) \
+#define DD_SCENES(...)       \
     DDScene ddScenes[] = {   \
-        __VA_ARGS__         \
+        __VA_ARGS__          \
     }

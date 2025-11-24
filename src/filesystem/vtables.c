@@ -21,6 +21,7 @@ VersionVTable VTABLE_1_0 =
     .gSfxDefaultFreqAndVolScale = (void*)0x801043A0,
     .gSfxDefaultReverb = (void*)0x801043A8,
     .titleCard_initPlaceName = (void*)0x800207C4,
+    .mapSelectInit = (void*)0x80801C14,
 };
 
 VersionVTable VTABLE_1_1 =
@@ -44,6 +45,7 @@ VersionVTable VTABLE_1_1 =
     .gSfxDefaultFreqAndVolScale = (void*)0x80104560,
     .gSfxDefaultReverb = (void*)0x80104568,
     .titleCard_initPlaceName = (void*)0x800207C4,
+    .mapSelectInit = (void*)0x80801C14,
 };
 
 VersionVTable VTABLE_1_2 =
@@ -67,4 +69,5 @@ VersionVTable VTABLE_1_2 =
     .gSfxDefaultFreqAndVolScale = (void*)0x801049E0,
     .gSfxDefaultReverb = (void*)0x801049E8,
     .titleCard_initPlaceName = (void*)0x80020E04,
+    .mapSelectInit = (void*)0x80801C14,
 };

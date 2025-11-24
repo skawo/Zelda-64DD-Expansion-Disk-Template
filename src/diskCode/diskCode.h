@@ -11,6 +11,8 @@
 #include "../../include/controller.h"
 #include "../../include/sfx.h"
 #include "../../include/fault.h"
+#include "../../include/map_select_state.h"
+
 #include "../ddTool/ddTool.h"
 #include "vtables.h"
 
@@ -130,7 +132,6 @@ typedef struct DDState
     ddFuncPointers* funcTablePtr;
     ddHookTable* hookTablePtr;
     s8 gameVersion;
-    void* titleCardAddr;
     OSPiHandle* sISVHandle;
     VersionVTable vtable;
 } DDState;
@@ -163,6 +164,8 @@ void SpawnArwing(struct PlayState* play);
 void _isPrintfInit();
 void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count);
 void is64Printf(const char* fmt, ...);
+void DoClockDisplayOnLinkHouseSign(struct PlayState* play);
+void RestoreMapSelect(struct PlayState* play);
 
 extern void* __Disk_Init_K1;
 extern void* __Disk_Start;

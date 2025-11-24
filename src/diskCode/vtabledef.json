@@ -1,5 +1,10 @@
 [
   {
+    "decl": "void* funcTablePtr",
+    "symbol": "D_800FEE70",
+    "static": true
+  },  
+  {
     "decl": "void (*audioPlaySfxGeneral)(u16, Vec3f*, u8, f32*, f32*, s8*)",
     "symbol": "Audio_PlaySfxGeneral"
   },
@@ -74,10 +79,9 @@
   {
     "decl": "void (*titleCard_initPlaceName) (PlayState* play, TitleCardContext* titleCtx, void* texture, s32 x, s32 y, s32 width, s32 height, s32 delay)",
     "symbol": "TitleCard_InitPlaceName"
-  },     
+  },  
   {
-    "decl": "void* funcTablePtr",
-    "symbol": "D_800FEE70",
-    "static": true
-  }
+    "decl": "void (*mapSelectInit) (GameState* thisx)",
+    "symbol": "MapSelect_Init"
+  }    
 ]
