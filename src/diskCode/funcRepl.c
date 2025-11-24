@@ -1,21 +1,25 @@
 #include "funcRepl.h"
 
-void ReplaceFunc(void* replacedFunction, void* newFunction, int functionLen)
-{
-    ddMemcpy(newFunction, replacedFunction, functionLen);
-    dd.funcTablePtr->osWritebackDCacheAll();
-    dd.funcTablePtr->osInvalICache(replacedFunction, functionLen);    
-}
-
 void Functions_ReplaceAll(FuncReplacement* table, int numEntries)
 {
     for (int i = 0; i < numEntries; i++)
     {
         FuncReplacement entry = table[i];
-        is64Printf("Replacing %x -> %x\n", *entry.toReplace, entry.replaceWith);
-        ReplaceFunc(*entry.toReplace, entry.replaceWith, 8);
+
+        u32* targetFunc = (u32*) *entry.toReplace;
+        void* replacement = entry.replaceWith;
+
+        is64Printf("Replacing %08X -> %08X\n", targetFunc, replacement);
+
+        // Create a J instruction to the replacement function + NOP in the delay slot
+        targetFunc[0] = 0x08000000 | (((u32)replacement >> 2) & 0x03FFFFF);
+        targetFunc[1] = 0x00000000;
+
+        dd.funcTablePtr->osWritebackDCacheAll();
+        dd.funcTablePtr->osInvalICache(targetFunc, 8);
     }
 }
+
 
 // ==============================================================================
 
@@ -66,9 +70,6 @@ void TitleCard_InitPlaceName_Repl(PlayState* play, TitleCardContext* titleCtx, v
     titleCtx->durationTimer = 80;
     titleCtx->delayTimer = delay;
 }
-
-STUB_FUNC(Font_LoadChar_Repl);
-STUB_FUNC(TitleCard_InitPlaceName_Repl);
 
 DD_FUNC_REPLACEMENTS
 (
