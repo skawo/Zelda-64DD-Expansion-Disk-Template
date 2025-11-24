@@ -25,3 +25,24 @@ After running .build.py, headers will be generated in <i>include/fileHeaders</i>
 Afterwards, files can be loaded from the disk using the appropriate function (see the <i>ShowErrorScreen</i> function in <i>diskCode.c</i> for an example).
 
 There also exists a pre-made function to replace arbitrary scenes in the game. The scenes and their rooms need to be defined in ddScenes.c
+
+# Calling original functions
+Provided is a semi-automatic way to obtain the addresses for functions and variables in all three NTSC revisions of Ocarina of Time.
+You can find all the available symbols in the symbols1_x.h files found in the src folder. 
+
+Edit vtabledef.json to add the function name and signature without the _1_x suffix.
+
+After recompiling, that function will be available for use in the dd.vtable struct. The vtable is loaded at the end of the Disk_Init function.
+This also works for global variables of all kinds.
+
+# Replacing original functions
+You can overwrite any of the game's functions by adding your new function in funcRepl.c. The new function should use all of the original's arguments,
+in the same order. The new function can be any size.
+
+After implementing the new function, add a STUB_FUNC entry at the bottom of the file, passing the name of the new function:
+
+<i>STUB_FUNC(Function_Name)</i>
+
+Next, add an entry to the DD_FUNC_REPLACEMENTS macro, passing the vtable entry of the function to replace, and the name of the new function:
+
+<i>FUNC_REPL_ENTRY(dd.vtable.someFunctionEntry, Function_Name)</i>
