@@ -124,23 +124,18 @@ typedef struct ddHookTable
     /* 0x078 */ s32 (*cutsceneSetScript)(struct PlayState*, void*, void*);
 } ddHookTable; // size = ?
 
-typedef struct globals64DD
+typedef struct DDState
 {
     PlayState* play;
     ddFuncPointers* funcTablePtr;
     ddHookTable* hookTablePtr;
     s8 gameVersion;
-    bool spawnArwing;
-    Vec3f defaultSfxPos;
-    f32 defaultFreqAndVolScale;
-    s8 defaultReverb;
     void* titleCardAddr;
     OSPiHandle* sISVHandle;
+    VersionVTable vtable;
+} DDState;
 
-} globals64DD;
-
-globals64DD vars;
-VersionVTable vtable;
+DDState dd;
 
 extern VersionVTable* VTABLE_1_0;
 extern VersionVTable* VTABLE_1_1;

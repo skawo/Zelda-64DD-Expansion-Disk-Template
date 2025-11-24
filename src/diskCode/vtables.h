@@ -29,6 +29,9 @@ typedef struct
     int (*sprintf)(char*, const char*, ...);
     u32 ENGLISH_MESSAGE_DATA;
     u32 ENGLISH_FONT;
+    Vec3f* gSfxDefaultPos;
+    f32* gSfxDefaultFreqAndVolScale;
+    s8* gSfxDefaultReverb;
 } VersionVTable;
 
 #endif // VTABLES_H

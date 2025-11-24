@@ -60,6 +60,18 @@
     "symbol": "_nes_font_staticSegmentRomStart"
   },
   {
+    "decl": "Vec3f* gSfxDefaultPos",
+    "symbol": "gSfxDefaultPos"
+  },  
+  {
+    "decl": "f32* gSfxDefaultFreqAndVolScale",
+    "symbol": "gSfxDefaultFreqAndVolScale"
+  },   
+  {
+    "decl": "s8* gSfxDefaultReverb",
+    "symbol": "gSfxDefaultReverb"
+  },    
+  {
     "decl": "void* funcTablePtr",
     "symbol": "D_800FEE70",
     "static": true

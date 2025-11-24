@@ -17,6 +17,9 @@ VersionVTable VTABLE_1_0 =
     .sprintf = (void*)0x800CE7B4,
     .ENGLISH_MESSAGE_DATA = 0x0092D000,
     .ENGLISH_FONT = 0x00928000,
+    .gSfxDefaultPos = (void*)0x80104394,
+    .gSfxDefaultFreqAndVolScale = (void*)0x801043A0,
+    .gSfxDefaultReverb = (void*)0x801043A8,
 };
 
 VersionVTable VTABLE_1_1 =
@@ -36,6 +39,9 @@ VersionVTable VTABLE_1_1 =
     .sprintf = (void*)0x800CE974,
     .ENGLISH_MESSAGE_DATA = 0x0092D000,
     .ENGLISH_FONT = 0x00928000,
+    .gSfxDefaultPos = (void*)0x80104554,
+    .gSfxDefaultFreqAndVolScale = (void*)0x80104560,
+    .gSfxDefaultReverb = (void*)0x80104568,
 };
 
 VersionVTable VTABLE_1_2 =
@@ -55,4 +61,7 @@ VersionVTable VTABLE_1_2 =
     .sprintf = (void*)0x800CEFF4,
     .ENGLISH_MESSAGE_DATA = 0x0092D000,
     .ENGLISH_FONT = 0x008ED000,
+    .gSfxDefaultPos = (void*)0x801049D4,
+    .gSfxDefaultFreqAndVolScale = (void*)0x801049E0,
+    .gSfxDefaultReverb = (void*)0x801049E8,
 };

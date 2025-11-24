@@ -24,14 +24,14 @@
 void ReplaceFunc(void* replacedFunction, void* newFunction, int functionLen)
 {
     ddMemcpy(newFunction, replacedFunction, functionLen);
-    vars.funcTablePtr->osWritebackDCacheAll();
-    vars.funcTablePtr->osInvalICache(replacedFunction, functionLen);    
+    dd.funcTablePtr->osWritebackDCacheAll();
+    dd.funcTablePtr->osInvalICache(replacedFunction, functionLen);    
 }
 
 void FontLoadChar_64DDIPL(Font* font, u8 characterIndex, u16 codePointIndex)
 {
     s32 offset = characterIndex * FONT_CHAR_TEX_SIZE;
-    vars.funcTablePtr->dmaFromDriveRom(&font->charTexBuf[codePointIndex], 
+    dd.funcTablePtr->dmaFromDriveRom(&font->charTexBuf[codePointIndex], 
                                         DDROM_FONT_START + offset, 
                                         FONT_CHAR_TEX_SIZE);    
 }
@@ -39,8 +39,8 @@ void FontLoadChar_64DDIPL(Font* font, u8 characterIndex, u16 codePointIndex)
 void FontLoadChar_ROM(Font* font, u8 characterIndex, u16 codePointIndex)
 {
     s32 offset = characterIndex * FONT_CHAR_TEX_SIZE;
-    vars.funcTablePtr->dmaMgrRequestSync(&font->charTexBuf[codePointIndex], 
-                                        (uintptr_t)(vtable.ENGLISH_FONT + offset), 
+    dd.funcTablePtr->dmaMgrRequestSync(&font->charTexBuf[codePointIndex], 
+                                        (uintptr_t)(dd.vtable.ENGLISH_FONT + offset), 
                                         FONT_CHAR_TEX_SIZE);  
 }
 

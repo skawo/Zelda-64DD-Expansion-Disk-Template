@@ -60,16 +60,13 @@ ddHookTable hookTable =
 };
 
 
-globals64DD vars = 
+DDState dd = 
 {
     .play                     = (PlayState*)NULL,
     .funcTablePtr             = (ddFuncPointers*)NULL,
     .hookTablePtr             = (ddHookTable*)NULL,
-    .spawnArwing              = false,
     .gameVersion              = -1,
-    .defaultSfxPos            = (Vec3f){ 0, 0, 0 },
-    .defaultFreqAndVolScale   = 1.0f,
-    .defaultReverb            = 0,
+    .vtable                   = {},
 };
 
 void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
@@ -77,22 +74,22 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     funcTablePtr->osWritebackDCacheAll();
     funcTablePtr->osInvalICache((void*)RAM_START, RAM_LENGTH);
  
-    vars.funcTablePtr = funcTablePtr;
-    vars.hookTablePtr = hookTablePtr;    
+    dd.funcTablePtr = funcTablePtr;
+    dd.hookTablePtr = hookTablePtr;    
     
     // Check game version by comparing the address of the funcTablePtr.
     for (int i = NTSC_1_0; i <= NTSC_1_2; i++)
     {
         if (funcTablePtrs[i - 1] == (void*)funcTablePtr)
-            vars.gameVersion = i - 1;
+            dd.gameVersion = i - 1;
     }
 
     // If no valid version detected, show error screen and hang.
-    if (vars.gameVersion < 0)
+    if (dd.gameVersion < 0)
         ShowErrorScreen(ERROR_VERSION_YAZ0, ERROR_VERSION_YAZ0_LEN);
 
-    vars.funcTablePtr->loadFromDisk(&vtable, (s32)vTableDiskAddrs[vars.gameVersion], sizeof(vtable));
-    SaveContext* sContext = vars.funcTablePtr->saveContext;
+    dd.funcTablePtr->loadFromDisk(&dd.vtable, (s32)vTableDiskAddrs[dd.gameVersion], sizeof(dd.vtable));
+    SaveContext* sContext = dd.funcTablePtr->saveContext;
 
     sContext->language = LANGUAGE_ENG;
     sContext->gameMode = GAMEMODE_NORMAL;
@@ -104,7 +101,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     else if (ddMemcmp(sContext->unk_1358, SAVE_ID, 4))      // Save from another disk.
         ShowErrorScreen(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
 
-    REPLACE_FUNC(vtable.fontLoadChar, Font_LoadChar_Repl);
+    REPLACE_FUNC(dd.vtable.fontLoadChar, Font_LoadChar_Repl);
 
     _isPrintfInit();
     is64Printf("64DD Ready!\n");
@@ -117,21 +114,21 @@ void Disk_Destroy()
 
 void Disk_GameState(struct GameState* state)
 {
-    SaveContext* sContext = vars.funcTablePtr->saveContext;
+    SaveContext* sContext = dd.funcTablePtr->saveContext;
 
     // We have no idea of the state the disk has left the game code, and so it's best to ask the player to reset.
-    if (vars.play && vars.play->pauseCtx.promptChoice && vars.play->pauseCtx.state == PAUSE_STATE_GAME_OVER_FINISH)
+    if (dd.play && dd.play->pauseCtx.promptChoice && dd.play->pauseCtx.state == PAUSE_STATE_GAME_OVER_FINISH)
         Disk_Destroy();   
 }
 
 void Disk_PlayInit(struct PlayState* play)
 {
-    vars.play = play;
+    dd.play = play;
 }
 
 void Disk_PlayDestroy(struct PlayState* play)
 {
-    vars.play = NULL;
+    dd.play = NULL;
 }
 
 void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
@@ -146,9 +143,9 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
     if (play->msgCtx.textId == 0x31F)
     {
         __LOCTime time;
-        vtable.locReadTimer(&time);
+        dd.vtable.locReadTimer(&time);
         char msgString[12] = "00:00:00";
-        vtable.sprintf(msgString, "%02x:%02x:%02x", time.hour, time.minute, time.second);
+        dd.vtable.sprintf(msgString, "%02x:%02x:%02x", time.hour, time.minute, time.second);
 
         for (int i = 0; i < 8; i++)
             FontLoadChar_ROM(&play->msgCtx.font, msgString[i] - 0x20, i * FONT_CHAR_TEX_SIZE);
@@ -156,8 +153,8 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
 
     Draw64DDDVDLogo(play);
 
-    if (vars.funcTablePtr->saveContext->showTitleCard && vars.titleCardAddr)
-        vars.play->actorCtx.titleCtx.texture = vars.titleCardAddr;
+    if (dd.funcTablePtr->saveContext->showTitleCard && dd.titleCardAddr)
+        dd.play->actorCtx.titleCtx.texture = dd.titleCardAddr;
 }
 
 struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* sceneTable)
@@ -177,7 +174,7 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
                 if (!entry->diskAddr)
                     break;
 
-                vars.funcTablePtr->loadFromDisk(addr, entry->diskAddr, entry->size);
+                dd.funcTablePtr->loadFromDisk(addr, entry->diskAddr, entry->size);
                 addr += entry->size;
             }
 
@@ -210,10 +207,10 @@ void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 room
                     addr += entry->size;
 
                     u32 titleCardSize = scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart;
-                    vars.titleCardAddr = titleCardSize ? addr : NULL;
-                    vars.funcTablePtr->loadFromDisk(vars.titleCardAddr, scene->entry.titleFile.vromStart, titleCardSize); 
+                    dd.titleCardAddr = titleCardSize ? addr : NULL;
+                    dd.funcTablePtr->loadFromDisk(dd.titleCardAddr, scene->entry.titleFile.vromStart, titleCardSize); 
 
-                    vars.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);                  // We're done loading!                     
+                    dd.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);                  // We're done loading!                     
                     return;
                 }
 
@@ -224,7 +221,7 @@ void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 room
 
     // Regular room load from cartridge.
     u32 size = play->roomList.romFiles[roomNum].vromEnd - play->roomList.romFiles[roomNum].vromStart;
-    vars.funcTablePtr->dmaMgrRequestAsync(&roomCtx->dmaRequest, roomCtx->roomRequestAddr,
+    dd.funcTablePtr->dmaMgrRequestAsync(&roomCtx->dmaRequest, roomCtx->roomRequestAddr,
                                           play->roomList.romFiles[roomNum].vromStart, size, 0, &roomCtx->loadQueue, NULL);
 }
 
@@ -237,15 +234,15 @@ s32 Disk_GetENGMessage(struct Font* font)
     {
         ddMemcpy("ARWING, GO!\x02", font->msgBuf, 200);
         
-        if (vars.play)
-            SpawnArwing(vars.play);
+        if (dd.play)
+            SpawnArwing(dd.play);
     }
     else if (msgC->textId == 0x31F)
     {
         ddMemcpy("00:00:00 is the current real time!\x02", font->msgBuf, 200);
     }
     else
-        vars.funcTablePtr->dmaMgrRequestSync(font->msgBuf, (uintptr_t)(font->msgOffset + vtable.ENGLISH_MESSAGE_DATA), font->msgLength); 
+        dd.funcTablePtr->dmaMgrRequestSync(font->msgBuf, (uintptr_t)(font->msgOffset + dd.vtable.ENGLISH_MESSAGE_DATA), font->msgLength); 
 
     return 1;
 }
@@ -261,7 +258,7 @@ void ShowErrorScreen(void* graphic, u32 graphicLen)
     u32* viReg = (u32*)K0_TO_K1(VI_ORIGIN_REG);
     u8* frameBuffer = (void*)K0_TO_K1(*viReg);
     u8* comprBuf = (u8*)SEGMENT_STATIC_START;
-    vars.funcTablePtr->loadFromDisk(comprBuf, (u32)graphic, graphicLen);
+    dd.funcTablePtr->loadFromDisk(comprBuf, (u32)graphic, graphicLen);
     ddYaz0_Decompress(comprBuf, frameBuffer, graphicLen);
     while (true);
 }
@@ -339,11 +336,11 @@ void Draw64DDDVDLogo(struct PlayState* play)
 
 void SpawnArwing(struct PlayState* play)
 {
-    vtable.audioPlaySfxGeneral(NA_SE_SY_KINSTA_MARK_APPEAR, &vars.defaultSfxPos, 4, 
-                                                      &vars.defaultFreqAndVolScale, &vars.defaultFreqAndVolScale, &vars.defaultReverb);
+    dd.vtable.audioPlaySfxGeneral(NA_SE_SY_KINSTA_MARK_APPEAR, dd.vtable.gSfxDefaultPos, 4, 
+                                  dd.vtable.gSfxDefaultFreqAndVolScale, dd.vtable.gSfxDefaultFreqAndVolScale, dd.vtable.gSfxDefaultReverb);
     
     Player* player = GET_PLAYER(play);
-    vtable.actorSpawn(&play->actorCtx, play, ACTOR_EN_CLEAR_TAG, player->actor.world.pos.x,
+    dd.vtable.actorSpawn(&play->actorCtx, play, ACTOR_EN_CLEAR_TAG, player->actor.world.pos.x,
                                             player->actor.world.pos.y + 50.0f, player->actor.world.pos.z, 0, 0, 0, 0); 
 }
 
@@ -352,10 +349,10 @@ void SpawnArwing(struct PlayState* play)
 
 void _isPrintfInit() 
 {
-    vars.sISVHandle = vtable.osCartRomInit();
-    vtable.osEPiWriteIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, 0);
-    vtable.osEPiWriteIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, 0);
-    vtable.osEPiWriteIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, ASCII_TO_U32('I', 'S', '6', '4'));
+    dd.sISVHandle = dd.vtable.osCartRomInit();
+    dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->put, 0);
+    dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->get, 0);
+    dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, ASCII_TO_U32('I', 'S', '6', '4'));
 }
 
 void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count) 
@@ -365,14 +362,14 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count)
     s32 start;
     s32 end;
 
-    vtable.osEPiReadIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, &data);
+    dd.vtable.osEPiReadIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, &data);
 
     if (data != ASCII_TO_U32('I', 'S', '6', '4')) 
         return (void*)1;
 
-    vtable.osEPiReadIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->get, &data);
+    dd.vtable.osEPiReadIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->get, &data);
     pos = data;
-    vtable.osEPiReadIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, &data);
+    dd.vtable.osEPiReadIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->put, &data);
     start = data;
     end = start + count;
 
@@ -395,8 +392,8 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count)
 
         if (*str) 
         {
-            vtable.osEPiReadIo(vars.sISVHandle, addr, &data);
-            vtable.osEPiWriteIo(vars.sISVHandle, addr, (*str << shift) | (data & ~(0xFF << shift)));
+            dd.vtable.osEPiReadIo(dd.sISVHandle, addr, &data);
+            dd.vtable.osEPiWriteIo(dd.sISVHandle, addr, (*str << shift) | (data & ~(0xFF << shift)));
 
             start++;
             if (start >= 0xFFE0) 
@@ -406,7 +403,7 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count)
         str++;
     }
 
-    vtable.osEPiWriteIo(vars.sISVHandle, (u32)&gISVDbgPrnAdrs->put, start);
+    dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->put, start);
 
     return (void*)1;
 }
@@ -416,7 +413,7 @@ void is64Printf(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    vars.funcTablePtr->printf(_is_proutSyncPrintf, NULL, fmt, args);
+    dd.funcTablePtr->printf(_is_proutSyncPrintf, NULL, fmt, args);
 
     va_end(args);
 }
