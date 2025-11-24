@@ -102,6 +102,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
         ShowErrorScreen(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
 
     REPLACE_FUNC(dd.vtable.fontLoadChar, Font_LoadChar_Repl);
+    REPLACE_FUNC(dd.vtable.titleCard_initPlaceName, TitleCard_InitPlaceName_Repl);
 
     _isPrintfInit();
     is64Printf("64DD Ready!\n");
@@ -152,9 +153,6 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
     }
 
     Draw64DDDVDLogo(play);
-
-    if (dd.funcTablePtr->saveContext->showTitleCard && dd.titleCardAddr)
-        dd.play->actorCtx.titleCtx.texture = dd.titleCardAddr;
 }
 
 struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* sceneTable)

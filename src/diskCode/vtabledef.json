@@ -70,7 +70,11 @@
   {
     "decl": "s8* gSfxDefaultReverb",
     "symbol": "gSfxDefaultReverb"
-  },    
+  },  
+  {
+    "decl": "void (*titleCard_initPlaceName) (PlayState* play, TitleCardContext* titleCtx, void* texture, s32 x, s32 y, s32 width, s32 height, s32 delay)",
+    "symbol": "TitleCard_InitPlaceName"
+  },     
   {
     "decl": "void* funcTablePtr",
     "symbol": "D_800FEE70",

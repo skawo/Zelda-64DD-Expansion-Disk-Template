@@ -54,4 +54,27 @@ void Font_LoadChar_Repl(Font* font, u8 character, u16 codePointIndex)
         FontLoadChar_64DDIPL(font, index, codePointIndex);
 } 
 
+void TitleCard_InitPlaceName_Repl(PlayState* play, TitleCardContext* titleCtx, void* texture, s32 x, s32 y, s32 width,s32 height, s32 delay) 
+{
+    SceneTableEntry* loadedScene = play->loadedScene;
+    u32 size = loadedScene->titleFile.vromEnd - loadedScene->titleFile.vromStart;
+
+    if ((size != 0) && (size <= 0x1000 * LANGUAGE_MAX)) 
+    {
+        if (loadedScene->unk_12)
+            dd.funcTablePtr->loadFromDisk(texture, loadedScene->titleFile.vromStart, size);
+        else
+            dd.funcTablePtr->dmaMgrRequestSync(texture, loadedScene->titleFile.vromStart, size);
+    }
+
+    titleCtx->texture = texture;
+    titleCtx->x = x;
+    titleCtx->y = y;
+    titleCtx->width = width;
+    titleCtx->height = height;
+    titleCtx->durationTimer = 80;
+    titleCtx->delayTimer = delay;
+}
+
 STUB_FUNC(Font_LoadChar_Repl);
+STUB_FUNC(TitleCard_InitPlaceName_Repl);

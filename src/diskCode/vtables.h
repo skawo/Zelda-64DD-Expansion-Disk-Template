@@ -32,6 +32,7 @@ typedef struct
     Vec3f* gSfxDefaultPos;
     f32* gSfxDefaultFreqAndVolScale;
     s8* gSfxDefaultReverb;
+    void (*titleCard_initPlaceName) (PlayState* play, TitleCardContext* titleCtx, void* texture, s32 x, s32 y, s32 width, s32 height, s32 delay);
 } VersionVTable;
 
 #endif // VTABLES_H
