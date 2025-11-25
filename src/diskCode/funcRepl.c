@@ -44,7 +44,7 @@ void Font_LoadChar_Repl(Font* font, u8 character, u16 codePointIndex)
     u16 index = ddGetSJisIndex(character + 0x20, false);
 
     if (index == 0xFFFF)
-        FontLoadChar_ROM(font, index, codePointIndex);
+        FontLoadChar_ROM(font, character, codePointIndex);
     else
         FontLoadChar_64DDIPL(font, index, codePointIndex);
 } 
