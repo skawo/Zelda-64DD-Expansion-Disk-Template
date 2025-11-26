@@ -11,12 +11,21 @@
 #include "../../include/controller.h"
 #include "../../include/sfx.h"
 #include "../../include/fault.h"
+#include "../../include/audio.h"
 #include "../../include/map_select_state.h"
 
 #include "../ddTool/ddTool.h"
 
 #include "../filesystem/vtables.h"
 #include "../filesystem/filesystem.h"
+
+//#define DVDLOGO
+#define SIGN_CLOCK
+#define SAVESTATES          // DISK_TYPE must be 4 or below
+//#define DDIPL_FONT
+#define MAP_SELECT
+#define DEBUGTOOLS
+#define ARWING
 
 typedef struct ddFuncPointers ddFuncPointers;
 typedef struct ddHookTable ddHookTable;
@@ -126,6 +135,25 @@ typedef struct ddHookTable
     /* 0x078 */ s32 (*cutsceneSetScript)(struct PlayState*, void*, void*);
 } ddHookTable; // size = ?
 
+#ifdef SAVESTATES
+    typedef struct DDSavedState
+    {
+        char magic[16];
+        int destinationScene;
+        int musicId;
+        int stateLoadCounter;
+        int linkAge;
+        int destinationEntrance;
+    } DDSavedState;
+
+    #define STATE_MAGIC    "N64DD_SAVE_STATE"
+    #define CHECKING_MSG   "Checking saved state..."
+    #define NO_SAVE_MSG    "No saved state found."
+    #define SAVING_MSG     "Saving state to disk."
+    #define LOADING_MSG    "Loading state from disk."
+    #define PLEASE_WAIT    "Please wait..."
+#endif
+
 typedef struct DDState
 {
     PlayState* play;
@@ -134,9 +162,19 @@ typedef struct DDState
     s8 gameVersion;
     OSPiHandle* sISVHandle;
     VersionVTable vtable;
+
+    #ifdef SAVESTATES
+        DDSavedState sState;
+    #endif
 } DDState;
 
 DDState dd;
+u8 msgGfxBuf[0x80] __attribute__((__aligned__(64)));
+
+#ifdef DEBUGTOOLS
+    #define gISVDbgPrnAdrs ((ISVDbg*)0xB3FF0000)
+    #define ASCII_TO_U32(a, b, c, d) ((u32)((a << 24) | (b << 16) | (c << 8) | (d << 0)))
+#endif
 
 extern VersionVTable* VTABLE_1_0;
 extern VersionVTable* VTABLE_1_1;
@@ -158,7 +196,7 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
 void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 roomNum);
 
 void DrawRect(Gfx** gfxp, u8 r, u8 g, u8 b, u32 PosX, u32 PosY, u32 Sizex, u32 SizeY);
-void ShowErrorScreen(void* graphic, u32 graphicLen);
+void ShowFullScreenGraphic(void* graphic, u32 graphicLen, bool halt);
 void Draw64DDDVDLogo(struct PlayState* play);
 void SpawnArwing(struct PlayState* play);
 void _isPrintfInit();
@@ -166,7 +204,11 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count);
 void is64Printf(const char* fmt, ...);
 void DoClockDisplayOnLinkHouseSign(struct PlayState* play);
 void RestoreMapSelect(struct PlayState* play);
-void LoadFromDisk_MusicSafe(void* dest, s32 offset, s32 size);
+void DoSaveStates(struct PlayState* play);
+void Disk_Read_MusicSafe(void* dest, s32 offset, s32 size);
+void Disk_Write(void* data, u32 diskAddr, u32 len);
+void Disk_Write_MusicSafe(void* data, u32 diskAddr, u32 len);
+void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool fontStyle);
 
 extern void* __Disk_Init_K1;
 extern void* __Disk_Start;
@@ -175,11 +217,15 @@ extern void* __Disk_VramStart;
 extern void* __Disk_VramEnd;
 extern void* __entry;
 extern void* RAM_LENGTH;
+extern void* ROM_LENGTH;
 
+#define SEGMENT_STATIC_END 0x80800000
 #define SEGMENT_STATIC_START 0x80700000
+#define SEGMENT_STATIC_START2 0x80780000
 #define ROOMS_START 0x80600000
 #define RAM_START (u32)&__entry
 #define RAM_LENGTH (u32)&RAM_LENGTH
+#define ROM_LENGTH (u32)&ROM_LENGTH
 
 #define SAVE_ID "64DD"
 

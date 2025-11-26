@@ -1,6 +1,9 @@
 extern unsigned char ERROR_IPL_YAZ0[];
 #define ERROR_IPL_YAZ0_LEN 9309
 
+extern unsigned char MSGTEST_BIN[];
+#define MSGTEST_BIN_LEN 12
+
 extern unsigned char ERROR_SAVE_YAZ0[];
 #define ERROR_SAVE_YAZ0_LEN 8607
 

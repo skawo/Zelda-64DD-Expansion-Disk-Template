@@ -19,12 +19,18 @@ void FN(ddMemcpy)(void* src, void* dst, int n);
 void FN(ddYaz0_Decompress)(u8* src, u8* dst, int compr_size);
 int FN(ddMemcmp)(void* s1, void* s2, int n);
 void FN(ddMemfill)(void* dst, u8 byte, int n);
-u16 FN(ddGetSJisIndex)(u8 c, bool normalize);
+u16 FN(ddGetSJisIndex)(u8 c);
+u32 FN(ddStrlen)(const char* str);
+void* FN(ddGetCurFrameBuffer)();
 
 #define ddMemcpy FN(ddMemcpy)
 #define ddMemcmp FN(ddMemcmp)
 #define ddMemfill FN(ddMemfill)
 #define ddYaz0_Decompress FN(ddYaz0_Decompress)
 #define ddGetSJisIndex FN(ddGetSJisIndex)
+#define ddStrlen FN(ddStrlen)
+#define ddGetCurFrameBuffer FN(ddGetCurFrameBuffer)
+
+#define ALIGN(pos, to)  ((pos) = ((pos) + ((to) - 1)) & ~((to) - 1))
 
 #endif // DDTOOL_H

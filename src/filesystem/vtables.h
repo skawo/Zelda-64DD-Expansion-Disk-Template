@@ -38,6 +38,21 @@ typedef struct
     Gfx* (*gfxClose) (Gfx* gfx, Gfx* dst);
     void* (*gfxAlloc) (Gfx** gfxP, u32 size);
     vu8* haltMusicForDiskDMA;
+    void* (*diskWrite) (void* arg0, s32 arg1, s32 arg2);
+    void* (*diskRead) (s32 arg0, void* arg1, s32 arg2);
+    void* (*byteToLBAandOffset) (s32 arg0, s32* arg1, s32* arg2);
+    s32 (*getLBALength) (s32 startLBA);
+    void** diskBuffer;
+    void (*markDDUnavailable) ();
+    void (*stopMusicThread) ();
+    void (*markDDAvailable) ();
+    void (*restartMusicThread) ();
+    u32* audioCtx;
+    void (*audio_StopBgmAndFanfare) (u16 fadeOutDuration);
+    void (*audio_QueueSeqCmd) (u32 cmd);
+    void* (*clearFrameBuffer) (void* arg0);
+    void (*sleep) (u32 msec);
+    void* (*printCharToFramebuffer) (void* charTexBuf, s32 posX, s32 posY, s32 dx, s32 dy, s32 cy, void* frameBuf, s32 screenWidth);
 } VersionVTable;
 
 #endif // VTABLES_H

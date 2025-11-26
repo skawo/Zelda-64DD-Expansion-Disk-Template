@@ -67,6 +67,7 @@ DDState dd =
     .hookTablePtr             = (ddHookTable*)NULL,
     .gameVersion              = -1,
     .vtable                   = {},
+    .sState                   = {.musicId = -1, .destinationScene = -1, .stateLoadCounter = 0},
 };
 
 void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
@@ -87,7 +88,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
     // If no valid version detected, show error screen and hang.
     // Otherwise, load the vTable from disk.
     if (dd.gameVersion < 0)
-        ShowErrorScreen(ERROR_VERSION_YAZ0, ERROR_VERSION_YAZ0_LEN);
+        ShowFullScreenGraphic(ERROR_VERSION_YAZ0, ERROR_VERSION_YAZ0_LEN, true);
     else
         dd.funcTablePtr->loadFromDisk(&dd.vtable, (s32)vTableDiskAddrs[dd.gameVersion], sizeof(VersionVTable));
 
@@ -100,17 +101,17 @@ void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
         ddMemcpy(sContext->unk_1358, SAVE_ID, 4);
     }
     else if (ddMemcmp(sContext->unk_1358, SAVE_ID, 4))      // Save from another disk.
-        ShowErrorScreen(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
+        ShowFullScreenGraphic(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN, true);
 
     _isPrintfInit();
     Functions_ReplaceAll(replFunctions, ARRAY_COUNT(replFunctions));
 
-    is64Printf("64DD Ready!\n");
+    is64Printf("64DD Ready!\n"); 
 }
 
 void Disk_Destroy()
 {
-    ShowErrorScreen(PLEASERESET_YAZ0, PLEASERESET_YAZ0_LEN);
+    ShowFullScreenGraphic(PLEASERESET_YAZ0, PLEASERESET_YAZ0_LEN, true);
 }
 
 void Disk_GameState(struct GameState* state)
@@ -136,11 +137,23 @@ void Disk_PlayDestroy(struct PlayState* play)
 void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
 {
     func[play->sceneDrawConfig](play);  
-    //dd.funcTablePtr->faultDrawText(25, 25, "%x", writeTest);
+    //dd.funcTablePtr->faultDrawText(25, 25, "%x %x %x", *dd.vtable.diskBuffer, lba, offset);
     
-    RestoreMapSelect(play);
-    DoClockDisplayOnLinkHouseSign(play);
-    Draw64DDDVDLogo(play);
+    #ifdef MAP_SELECT
+        RestoreMapSelect(play);
+    #endif
+
+    #ifdef SAVESTATES
+        DoSaveStates(play);
+    #endif    
+
+    #ifdef SIGN_CLOCK
+        DoClockDisplayOnLinkHouseSign(play);
+    #endif
+
+    #ifdef DVDLOGO 
+        Draw64DDDVDLogo(play); 
+    #endif
 }
 
 struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* sceneTable)
@@ -211,21 +224,28 @@ s32 Disk_GetENGMessage(struct Font* font)
 {
     MessageContext* msgC = (MessageContext*)((u8*)font - offsetof(MessageContext, font));
 
-    // Talking to Saria for the first time.
-    if (msgC->textId == 0x1002)
-    {
-        ddMemcpy("ARWING, GO!\x02", font->msgBuf, 200);
-        
-        if (dd.play)
-            SpawnArwing(dd.play);
-    }
-    else if (msgC->textId == 0x31F)
-    {
-        ddMemcpy("00:00:00 is the current real time!\x02", font->msgBuf, 200);
-    }
-    else
-        dd.funcTablePtr->dmaMgrRequestSync(font->msgBuf, (uintptr_t)(font->msgOffset + dd.vtable.ENGLISH_MESSAGE_DATA), font->msgLength); 
+    #ifdef ARWING
+        // Talking to Saria for the first time.
+        if (msgC->textId == 0x1002)
+        {
+            ddMemcpy("ARWING, GO!\x02", font->msgBuf, 200);
+            
+            if (dd.play)
+                SpawnArwing(dd.play);
 
+            return 1;
+        }
+    #endif
+
+    #ifdef SIGN_CLOCK
+        if (msgC->textId == 0x31F)
+        {
+            ddMemcpy("00:00:00 is the current real time!\x02", font->msgBuf, 200);
+            return 1;
+        }
+    #endif
+
+    dd.funcTablePtr->dmaMgrRequestSync(font->msgBuf, (uintptr_t)(font->msgOffset + dd.vtable.ENGLISH_MESSAGE_DATA), font->msgLength); 
     return 1;
 }
 
@@ -235,21 +255,7 @@ void Disk_SetMessageTables(struct MessageTableEntry** Japanese, struct MessageTa
 
 // ===========================================================================================================
 
-void LoadFromDisk_MusicSafe(void* dest, s32 offset, s32 size)
-{
-    *dd.vtable.haltMusicForDiskDMA = 1;
-    dd.funcTablePtr->loadFromDisk(dest, offset, size);    
-}
-
-void ShowErrorScreen(void* graphic, u32 graphicLen)
-{
-    u32* viReg = (u32*)K0_TO_K1(VI_ORIGIN_REG);
-    u8* frameBuffer = (void*)K0_TO_K1(*viReg);
-    u8* comprBuf = (u8*)SEGMENT_STATIC_START;
-    dd.funcTablePtr->loadFromDisk(comprBuf, (u32)graphic, graphicLen);
-    ddYaz0_Decompress(comprBuf, frameBuffer, graphicLen);
-    while (true);
-}
+#ifdef DVDLOGO
 
 void DrawRect(Gfx** gfxp, u8 r, u8 g, u8 b, u32 PosX, u32 PosY, u32 Sizex, u32 SizeY)
 {
@@ -325,6 +331,9 @@ void Draw64DDDVDLogo(struct PlayState* play)
     CLOSE_DISPS(gfxCtx, __FILE__, __LINE__);
 }
 
+#endif
+
+#ifdef ARWING
 void SpawnArwing(struct PlayState* play)
 {
     dd.vtable.audioPlaySfxGeneral(NA_SE_SY_KINSTA_MARK_APPEAR, dd.vtable.gSfxDefaultPos, 4, 
@@ -334,7 +343,9 @@ void SpawnArwing(struct PlayState* play)
     dd.vtable.actorSpawn(&play->actorCtx, play, ACTOR_EN_CLEAR_TAG, player->actor.world.pos.x,
                                             player->actor.world.pos.y + 50.0f, player->actor.world.pos.z, 0, 0, 0, 0); 
 }
+#endif
 
+#ifdef SIGN_CLOCK
 void DoClockDisplayOnLinkHouseSign(struct PlayState* play)
 {
     if (play->msgCtx.textId == 0x31F)
@@ -345,92 +356,312 @@ void DoClockDisplayOnLinkHouseSign(struct PlayState* play)
         dd.vtable.sprintf(msgString, "%02x:%02x:%02x", time.hour, time.minute, time.second);
 
         for (int i = 0; i < 8; i++)
-            FontLoadChar_ROM(&play->msgCtx.font, msgString[i] - 0x20, i * FONT_CHAR_TEX_SIZE);
+            FontLoadChar_ROM(&play->msgCtx.font.charTexBuf[i * FONT_CHAR_TEX_SIZE], msgString[i] - 0x20);
     }    
 }
+#endif
 
+#ifdef MAP_SELECT
 void RestoreMapSelect(struct PlayState* play)
 {
     Input* input = play->state.input;
 
-    if (CHECK_BTN_ALL(input->cur.button, BTN_Z | BTN_R | BTN_L))
+    if (CHECK_BTN_ALL(input->cur.button, BTN_Z | BTN_START))
     {
         SET_NEXT_GAMESTATE(&play->state, dd.vtable.mapSelectInit, MapSelectState);
         play->state.running = false;
         return;
     }    
 }
+#endif
 
-#define gISVDbgPrnAdrs ((ISVDbg*)0xB3FF0000)
-#define ASCII_TO_U32(a, b, c, d) ((u32)((a << 24) | (b << 16) | (c << 8) | (d << 0)))
+#ifdef SAVESTATES
+void DoSaveStates(struct PlayState* play)
+{
+    Input* input = play->state.input;
+    SaveContext* sc = dd.funcTablePtr->saveContext;
+
+    int saveSize =  0x785C8 + sizeof(DDSavedState) + sizeof(gSaveContext) + (RAM_START - (u32)&play) + 0x1610 + 0x100;
+    int diskPos = ROM_LENGTH - saveSize;
+    ALIGN(diskPos, 32);
+
+    if (CHECK_BTN_ALL(input->press.button, BTN_L))
+    {  
+        dd.vtable.sleep(100);
+        void* frameBuffer = ddGetCurFrameBuffer(); 
+        dd.vtable.clearFrameBuffer(frameBuffer);
+        PrintTextLineToFb(frameBuffer, SAVING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
+        PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);
+
+        ddMemcpy(STATE_MAGIC, &dd.sState.magic, 16);
+        dd.sState.destinationEntrance = sc->save.entranceIndex;
+        dd.sState.linkAge = sc->save.linkAge;
+        dd.sState.musicId = sc->seqId;
+        dd.sState.destinationScene = play->sceneId;
+        dd.sState.stateLoadCounter = 0;        
+
+        Disk_Write_MusicSafe(&dd.sState, diskPos, sizeof(DDSavedState));
+        diskPos += sizeof(DDSavedState);
+        ALIGN(diskPos, 32);
+
+        Disk_Write_MusicSafe(sc, diskPos, sizeof(gSaveContext));
+        diskPos += sizeof(gSaveContext);     
+        ALIGN(diskPos, 32);       
+
+        u32 plAddr = (u32)play;
+        Disk_Write_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - (u32)&play) + 0x1610);
+        return;
+    }
+
+    if (CHECK_BTN_ALL(input->press.button, BTN_R) && !dd.sState.stateLoadCounter && play->transitionTrigger == TRANS_TRIGGER_OFF)
+    {
+        dd.vtable.sleep(100);
+        void* frameBuffer = ddGetCurFrameBuffer();           
+        dd.vtable.clearFrameBuffer(frameBuffer);
+        PrintTextLineToFb(frameBuffer, CHECKING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
+        PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);   
+
+        Disk_Read_MusicSafe(&dd.sState, diskPos, sizeof(DDSavedState));
+
+        if (ddMemcmp(dd.sState.magic, STATE_MAGIC, 16))
+        {
+            dd.vtable.sleep(100);
+            void* frameBuffer = ddGetCurFrameBuffer();           
+            dd.vtable.clearFrameBuffer(frameBuffer);
+            PrintTextLineToFb(frameBuffer, NO_SAVE_MSG, -1, -1, 1);
+
+            dd.sState.stateLoadCounter = 0;
+            dd.sState.destinationScene = -1;
+            dd.vtable.sleep(1000);
+            return;
+        }
+
+        if (sc->save.entranceIndex != dd.sState.destinationEntrance)
+        {
+            dd.vtable.audio_StopBgmAndFanfare(0);
+            play->nextEntranceIndex = dd.sState.destinationEntrance;
+            play->transitionTrigger = TRANS_TRIGGER_START; 
+            play->transitionMode = TRANS_MODE_INSTANT;
+            play->linkAgeOnLoad = dd.sState.linkAge;      
+            
+            play->envCtx.screenFillColor[0] = play->envCtx.screenFillColor[1] = play->envCtx.screenFillColor[2] = 0;
+            play->envCtx.screenFillColor[3] = 255;
+            play->envCtx.fillScreen = 1;
+            dd.sState.stateLoadCounter = 2;
+        }
+        else
+            dd.sState.stateLoadCounter = 1;
+    }    
+
+    if (dd.sState.destinationScene == play->sceneId && dd.sState.stateLoadCounter)
+    {
+        dd.sState.stateLoadCounter--;
+
+        if (dd.sState.stateLoadCounter != 0)
+            return;
+          
+        dd.vtable.sleep(100);
+        void* frameBuffer = ddGetCurFrameBuffer();           
+        dd.vtable.clearFrameBuffer(frameBuffer);
+        PrintTextLineToFb(frameBuffer, LOADING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
+        PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);           
+
+        diskPos += sizeof(DDSavedState); 
+        ALIGN(diskPos, 32);
+
+        Disk_Read_MusicSafe(sc, diskPos, sizeof(gSaveContext));
+        diskPos += sizeof(gSaveContext);
+        ALIGN(diskPos, 32);       
+
+        u32 plAddr = (u32)play;
+        Disk_Read_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - (u32)&play) + 0x1610);
+
+        dd.funcTablePtr->osWritebackDCacheAll();
+        dd.funcTablePtr->osInvalICache((void*)0x80000000, 0x400000);       
+        dd.funcTablePtr->osInvalDCache((void*)0x80000000, 0x400000);  
+        
+        dd.vtable.audio_QueueSeqCmd(dd.sState.musicId);
+        dd.sState.destinationScene = -1;
+        return;
+    }
+}
+#endif
+
+// ===========================================================================================================
+
+// These perform their respective action without killing the audio engine.
+void Disk_Read_MusicSafe(void* dest, s32 offset, s32 size)
+{
+    *dd.vtable.haltMusicForDiskDMA = 1;
+    dd.funcTablePtr->loadFromDisk(dest, offset, size);    
+}
+
+void Disk_Write_MusicSafe(void* data, u32 diskAddr, u32 len)
+{
+    *dd.vtable.haltMusicForDiskDMA = 1;
+    Disk_Write(data, diskAddr, len);
+}
+
+// Write to disk at specified byte address.
+// Remember that all byte addresses in OoT start at LBA1, so the actual location on the disk will be + 0x785C8
+// DISK_TYPE governs where data can be written to the disk.
+void Disk_Write(void* data, u32 diskAddr, u32 len)
+{
+    s32 lba_start;
+    s32 offset_start;
+    s32 lba_end;
+    s32 offset_end;
+
+    dd.vtable.markDDUnavailable();
+    dd.vtable.stopMusicThread();
+
+    dd.vtable.byteToLBAandOffset(diskAddr, &lba_start, &offset_start);
+    dd.vtable.byteToLBAandOffset(diskAddr + len, &lba_end, &offset_end);
+
+    int writtenLen = 0;
+    for (int i = lba_start; i < lba_end + 1; i++)
+    {
+        int curLbaLen = dd.vtable.getLBALength(i);
+        int curLbaOffset = i == lba_start ? offset_start : 0;
+        int curWriteLen = (len - writtenLen) > (curLbaLen - curLbaOffset) ? (curLbaLen - curLbaOffset) : (len - writtenLen);
+        
+        dd.vtable.diskRead((s32)i, (void*)*dd.vtable.diskBuffer, curLbaLen);
+        ddMemcpy((void*)((u32)data + writtenLen), (void*)((u32)(*dd.vtable.diskBuffer) + curLbaOffset), curWriteLen);
+        dd.vtable.diskWrite((void*)i, (s32)*dd.vtable.diskBuffer, curWriteLen);
+
+        writtenLen += curWriteLen;
+    }
+
+    dd.vtable.markDDAvailable();
+    dd.vtable.restartMusicThread();
+}
 
 void _isPrintfInit() 
 {
-    dd.sISVHandle = dd.vtable.osCartRomInit();
-    dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->put, 0);
-    dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->get, 0);
-    dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, ASCII_TO_U32('I', 'S', '6', '4'));
+    #ifdef DEBUGTOOLS
+        dd.sISVHandle = dd.vtable.osCartRomInit();
+        dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->put, 0);
+        dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->get, 0);
+        dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, ASCII_TO_U32('I', 'S', '6', '4'));
+    #endif
 }
 
 void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count) 
 {
-    u32 data;
-    s32 pos;
-    s32 start;
-    s32 end;
+    #ifdef DEBUGTOOLS
+        u32 data;
+        s32 pos;
+        s32 start;
+        s32 end;
 
-    dd.vtable.osEPiReadIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, &data);
+        dd.vtable.osEPiReadIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->magic, &data);
 
-    if (data != ASCII_TO_U32('I', 'S', '6', '4')) 
-        return (void*)1;
-
-    dd.vtable.osEPiReadIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->get, &data);
-    pos = data;
-    dd.vtable.osEPiReadIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->put, &data);
-    start = data;
-    end = start + count;
-
-    if (end >= 0xFFE0) 
-    {
-        end -= 0xFFE0;
-        if (pos < end || start < pos) 
+        if (data != ASCII_TO_U32('I', 'S', '6', '4')) 
             return (void*)1;
-    } 
-    else 
-    {
-        if (start < pos && pos < end)
-            return (void*)1;
-    }
 
-    while (count) 
-    {
-        u32 addr = (u32)&gISVDbgPrnAdrs->data + (start & 0xFFFFFFC);
-        s32 shift = ((3 - (start & 3)) * 8);
+        dd.vtable.osEPiReadIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->get, &data);
+        pos = data;
+        dd.vtable.osEPiReadIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->put, &data);
+        start = data;
+        end = start + count;
 
-        if (*str) 
+        if (end >= 0xFFE0) 
         {
-            dd.vtable.osEPiReadIo(dd.sISVHandle, addr, &data);
-            dd.vtable.osEPiWriteIo(dd.sISVHandle, addr, (*str << shift) | (data & ~(0xFF << shift)));
-
-            start++;
-            if (start >= 0xFFE0) 
-                start -= 0xFFE0;
+            end -= 0xFFE0;
+            if (pos < end || start < pos) 
+                return (void*)1;
+        } 
+        else 
+        {
+            if (start < pos && pos < end)
+                return (void*)1;
         }
-        count--;
-        str++;
-    }
 
-    dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->put, start);
+        while (count) 
+        {
+            u32 addr = (u32)&gISVDbgPrnAdrs->data + (start & 0xFFFFFFC);
+            s32 shift = ((3 - (start & 3)) * 8);
 
-    return (void*)1;
+            if (*str) 
+            {
+                dd.vtable.osEPiReadIo(dd.sISVHandle, addr, &data);
+                dd.vtable.osEPiWriteIo(dd.sISVHandle, addr, (*str << shift) | (data & ~(0xFF << shift)));
+
+                start++;
+                if (start >= 0xFFE0) 
+                    start -= 0xFFE0;
+            }
+            count--;
+            str++;
+        }
+
+        dd.vtable.osEPiWriteIo(dd.sISVHandle, (u32)&gISVDbgPrnAdrs->put, start);
+
+        return (void*)1;
+    #endif
 }
 
 void is64Printf(const char* fmt, ...) 
 {
-    va_list args;
-    va_start(args, fmt);
+    #ifdef DEBUGTOOLS
+        va_list args;
+        va_start(args, fmt);
 
-    dd.funcTablePtr->printf(_is_proutSyncPrintf, NULL, fmt, args);
+        dd.funcTablePtr->printf(_is_proutSyncPrintf, NULL, fmt, args);
 
-    va_end(args);
+        va_end(args);
+    #endif
+}
+
+void ShowFullScreenGraphic(void* graphic, u32 graphicLen, bool halt)
+{
+    u8* comprBuf = (u8*)SEGMENT_STATIC_START;
+    Disk_Read_MusicSafe(comprBuf, (u32)graphic, graphicLen);
+    void* frameBuffer = ddGetCurFrameBuffer(); 
+    ddYaz0_Decompress(comprBuf, frameBuffer, graphicLen);
+
+    if (halt)
+        while (true);
+}
+
+void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool fontStyle)
+{
+    int msgGfxOffs = 0;
+    int msgWidth = 0;
+
+    if (xPos == -1)
+    {
+        if (fontStyle == 0)
+            xPos = SCREEN_WIDTH / 2 - 16 * ddStrlen(msg) / 2;
+        else
+        {
+            for (int i = 0; msg[i] != '\0'; i++)
+            {
+                u8 chara = msg[i] - 0x20;
+                msgWidth += dd.vtable.sFontWidths[chara];
+            }
+
+            xPos = SCREEN_WIDTH / 2 - msgWidth / 2;
+        }
+    }
+
+    if (yPos == -1)
+        yPos = SCREEN_HEIGHT / 2 - 8;
+
+    for (int i = 0; msg[i] != '\0'; i++)
+    {
+        int width = 16;
+
+        if (fontStyle == 0)
+            FontLoadChar_64DDIPL(msgGfxBuf, ddGetSJisIndex(msg[i]));
+        else
+        {
+            u8 chara = msg[i] - ' ';
+            width = dd.vtable.sFontWidths[chara];
+            FontLoadChar_ROM(msgGfxBuf, chara);
+        }
+
+        dd.vtable.printCharToFramebuffer(msgGfxBuf, xPos, yPos, 16, 16, 16, frameBuffer, SCREEN_WIDTH);
+        xPos += width;
+    }
 }

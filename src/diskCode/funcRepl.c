@@ -23,30 +23,26 @@ void Functions_ReplaceAll(FuncReplacement* table, int numEntries)
 
 // ==============================================================================
 
-void FontLoadChar_64DDIPL(Font* font, u8 characterIndex, u16 codePointIndex)
+void FontLoadChar_64DDIPL(void* dest, u8 characterIndex)
 {
     s32 offset = characterIndex * FONT_CHAR_TEX_SIZE;
-    dd.funcTablePtr->dmaFromDriveRom(&font->charTexBuf[codePointIndex], 
-                                        DDROM_FONT_START + offset, 
-                                        FONT_CHAR_TEX_SIZE);    
+    dd.funcTablePtr->dmaFromDriveRom(dest, DDROM_FONT_START + offset, FONT_CHAR_TEX_SIZE);    
 }
 
-void FontLoadChar_ROM(Font* font, u8 characterIndex, u16 codePointIndex)
+void FontLoadChar_ROM(void* dest, u8 characterIndex)
 {
     s32 offset = characterIndex * FONT_CHAR_TEX_SIZE;
-    dd.funcTablePtr->dmaMgrRequestSync(&font->charTexBuf[codePointIndex], 
-                                        (uintptr_t)(dd.vtable.ENGLISH_FONT + offset), 
-                                        FONT_CHAR_TEX_SIZE);  
+    dd.funcTablePtr->dmaMgrRequestSync(dest, (uintptr_t)(dd.vtable.ENGLISH_FONT + offset), FONT_CHAR_TEX_SIZE);  
 }
 
 void Font_LoadChar_Repl(Font* font, u8 character, u16 codePointIndex)
 {
-    u16 index = ddGetSJisIndex(character + 0x20, false);
+    u16 index = ddGetSJisIndex(character + 0x20);
 
     if (index == 0xFFFF)
-        FontLoadChar_ROM(font, character, codePointIndex);
+        FontLoadChar_ROM(&font->charTexBuf[codePointIndex], character);
     else
-        FontLoadChar_64DDIPL(font, index, codePointIndex);
+        FontLoadChar_64DDIPL(&font->charTexBuf[codePointIndex], index);
 } 
 
 void TitleCard_InitPlaceName_Repl(PlayState* play, TitleCardContext* titleCtx, void* texture, s32 x, s32 y, s32 width,s32 height, s32 delay) 
@@ -73,6 +69,8 @@ void TitleCard_InitPlaceName_Repl(PlayState* play, TitleCardContext* titleCtx, v
 
 DD_FUNC_REPLACEMENTS
 (
-    FUNC_REPL_ENTRY(dd.vtable.fontLoadChar, Font_LoadChar_Repl),   
-    FUNC_REPL_ENTRY(dd.vtable.titleCard_initPlaceName, TitleCard_InitPlaceName_Repl),        
+    FUNC_REPL_ENTRY(dd.vtable.titleCard_initPlaceName, TitleCard_InitPlaceName_Repl),  
+    #ifdef DDIPL_FONT
+        FUNC_REPL_ENTRY(dd.vtable.fontLoadChar, Font_LoadChar_Repl),  
+    #endif           
 );

@@ -99,5 +99,65 @@
   {
     "decl": "vu8* haltMusicForDiskDMA",
     "symbol": "D_80121214"    
+  },
+  {
+    "decl": "void* (*diskWrite) (void* arg0, s32 arg1, s32 arg2)",
+    "symbol": "func_801C79CC"
+  },
+  {
+    "decl": "void* (*diskRead) (s32 arg0, void* arg1, s32 arg2)",
+    "symbol": "func_801C7920"
+  },  
+  {
+    "decl": "void* (*byteToLBAandOffset) (s32 arg0, s32* arg1, s32* arg2)",
+    "symbol": "func_801C7B48"      
+  },
+  {
+    "decl": "s32 (*getLBALength) (s32 startLBA)",
+    "symbol": "func_801C7BEC"      
+  },
+  {
+    "decl": "void** diskBuffer",
+    "symbol": "D_801D2E50"
+  },  
+  {
+    "decl": "void (*markDDUnavailable) ()",
+    "symbol": "func_801C6FD8"
+  }, 
+  {
+    "decl": "void (*stopMusicThread) ()",
+    "symbol": "func_801C6F30"
+  },
+  {
+    "decl": "void (*markDDAvailable) ()",
+    "symbol": "func_801C7018"
+  },
+  {
+    "decl": "void (*restartMusicThread) ()",
+    "symbol": "func_801C6F78"
+  },
+  {
+    "decl": "u32* audioCtx",
+    "symbol": "gAudioCtx"
+  },
+  {
+    "decl": "void (*audio_StopBgmAndFanfare) (u16 fadeOutDuration)",
+    "symbol": "Audio_StopBgmAndFanfare"
+  }, 
+  {
+    "decl": "void (*audio_QueueSeqCmd) (u32 cmd)",
+    "symbol": "Audio_QueueSeqCmd"
+  },
+  {
+    "decl": "void* (*clearFrameBuffer) (void* arg0)",
+    "symbol": "func_801C7438"
+  },
+  {
+    "decl": "void (*sleep) (u32 msec)",
+    "symbol": "Sleep_Msec"
+  },  
+  {
+     "decl": "void* (*printCharToFramebuffer) (void* charTexBuf, s32 posX, s32 posY, s32 dx, s32 dy, s32 cy, void* frameBuf, s32 screenWidth)",
+    "symbol": "func_801CA1F0"   
   }
 ]

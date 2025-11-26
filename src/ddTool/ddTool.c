@@ -8,6 +8,22 @@ typedef struct Yaz0Header
     u32 uncompDataOffset;
 } Yaz0Header;
 
+void* ddGetCurFrameBuffer()
+{
+    u32* viReg = (u32*)K0_TO_K1(VI_ORIGIN_REG);
+    return (void*)K0_TO_K1(*viReg);     
+}
+
+u32 ddStrlen(const char* str) 
+{
+    const char* ptr = str;
+
+    while (*ptr)
+        ptr++;
+
+    return ptr - str;
+}
+
 void ddMemcpy(void* src, void* dst, int n)
 {
     u8* p1 = (u8*)src;
@@ -103,7 +119,7 @@ void ddYaz0_Decompress(u8* src, u8* dst, int compr_size)
     while (dst != dstEnd);
 }
 
-u16 ddGetSJisIndex(u8 c, bool normalize) 
+u16 ddGetSJisIndex(u8 c) 
 {
     if (c >= '0' && c <= '9')
         return 146 + (c - '0');
