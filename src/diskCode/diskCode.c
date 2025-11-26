@@ -503,7 +503,7 @@ void Disk_Write_MusicSafe(void* data, u32 diskAddr, u32 len)
 }
 
 // Write to disk at specified byte address.
-// Remember that all byte addresses in OoT start at LBA1, so the actual location on the disk will be + 0x785C8
+// The actual location on the disk will be + 0x785C8, because the system area is not counted, and LBA 1 is also not counted.
 // DISK_TYPE governs where data can be written to the disk.
 void Disk_Write(void* data, u32 diskAddr, u32 len)
 {
