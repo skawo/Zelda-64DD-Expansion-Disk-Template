@@ -153,11 +153,39 @@
     "symbol": "func_801C7438"
   },
   {
-    "decl": "void (*sleep) (u32 msec)",
+    "decl": "void (*sleepMsec) (u32 msec)",
     "symbol": "Sleep_Msec"
   },  
   {
-     "decl": "void* (*printCharToFramebuffer) (void* charTexBuf, s32 posX, s32 posY, s32 dx, s32 dy, s32 cy, void* frameBuf, s32 screenWidth)",
+    "decl": "void (*sleepUsec) (u32 msec)",
+    "symbol": "Sleep_Usec"
+  },    
+  {
+    "decl": "void* (*printCharToFramebuffer) (void* charTexBuf, s32 posX, s32 posY, s32 dx, s32 dy, s32 cy, void* frameBuf, s32 screenWidth)",
     "symbol": "func_801CA1F0"   
-  }
+  },
+  {
+    "decl": "s32 (*leoTestUnitReady) (s8* status)",
+    "symbol": "LeoTestUnitReady"  
+  },
+  {
+    "decl": "s32 (*leoBootGame) (void* entry)",
+    "symbol": "LeoBootGame"  
+  },
+  {
+    "decl": "s32 (*ddUnkFunc7) ()",
+    "symbol": "func_801C87FC"  
+  },
+  {
+    "decl": "s32 (*ddUnkFunc6) ()",
+    "symbol": "func_801C8844"  
+  },
+  {
+    "decl": "void (*sysFreeze) ()",
+    "symbol": "func_800D31A0"  
+  },
+  {
+    "decl": "volatile OSTime* ddStartOpTime",
+    "symbol": "B_801D9DC0"
+  }           
 ]

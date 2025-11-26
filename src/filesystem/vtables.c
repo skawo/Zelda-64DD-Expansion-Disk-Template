@@ -39,8 +39,15 @@ VersionVTable VTABLE_1_0 __attribute__((__aligned__(32))) =
     .audio_StopBgmAndFanfare = (void*)0x800C77D0,
     .audio_QueueSeqCmd = (void*)0x800CAA70,
     .clearFrameBuffer = (void*)0x801C7438,
-    .sleep = (void*)0x80001CCC,
+    .sleepMsec = (void*)0x80001CCC,
+    .sleepUsec = (void*)0x80001C7C,
     .printCharToFramebuffer = (void*)0x801CA1F0,
+    .leoTestUnitReady = (void*)0x801D2CB0,
+    .leoBootGame = NULL,  // LeoBootGame_1_0 not found
+    .ddUnkFunc7 = (void*)0x801C87FC,
+    .ddUnkFunc6 = (void*)0x801C8844,
+    .sysFreeze = (void*)0x800ACE60,
+    .ddStartOpTime = (void*)0x801D9DC0,
 };
 
 VersionVTable VTABLE_1_1 __attribute__((__aligned__(32))) =
@@ -82,8 +89,15 @@ VersionVTable VTABLE_1_1 __attribute__((__aligned__(32))) =
     .audio_StopBgmAndFanfare = (void*)0x800C7928,
     .audio_QueueSeqCmd = (void*)0x800CAC30,
     .clearFrameBuffer = (void*)0x801C75B8,
-    .sleep = (void*)0x80001CCC,
+    .sleepMsec = (void*)0x80001CCC,
+    .sleepUsec = (void*)0x80001C7C,
     .printCharToFramebuffer = (void*)0x801CA380,
+    .leoTestUnitReady = (void*)0x801D2E50,
+    .leoBootGame = NULL,  // LeoBootGame_1_1 not found
+    .ddUnkFunc7 = (void*)0x801C897C,
+    .ddUnkFunc6 = (void*)0x801C89C4,
+    .sysFreeze = (void*)0x800ACE60,
+    .ddStartOpTime = (void*)0x801D9F60,
 };
 
 VersionVTable VTABLE_1_2 __attribute__((__aligned__(32))) =
@@ -125,6 +139,13 @@ VersionVTable VTABLE_1_2 __attribute__((__aligned__(32))) =
     .audio_StopBgmAndFanfare = (void*)0x800C7FA0,
     .audio_QueueSeqCmd = (void*)0x800CB2B0,
     .clearFrameBuffer = (void*)0x801C7CB8,
-    .sleep = (void*)0x80001E7C,
+    .sleepMsec = (void*)0x80001E7C,
+    .sleepUsec = (void*)0x80001E2C,
     .printCharToFramebuffer = (void*)0x801CAA60,
+    .leoTestUnitReady = (void*)0x801D3530,
+    .leoBootGame = NULL,  // LeoBootGame_1_2 not found
+    .ddUnkFunc7 = (void*)0x801C905C,
+    .ddUnkFunc6 = (void*)0x801C90A4,
+    .sysFreeze = (void*)0x800AD430,
+    .ddStartOpTime = (void*)0x801DA640,
 };

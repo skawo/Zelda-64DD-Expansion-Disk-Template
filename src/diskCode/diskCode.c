@@ -138,7 +138,7 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
 {
     func[play->sceneDrawConfig](play);  
     //dd.funcTablePtr->faultDrawText(25, 25, "%x %x %x", *dd.vtable.diskBuffer, lba, offset);
-    
+
     #ifdef MAP_SELECT
         RestoreMapSelect(play);
     #endif
@@ -228,7 +228,7 @@ s32 Disk_GetENGMessage(struct Font* font)
         // Talking to Saria for the first time.
         if (msgC->textId == 0x1002)
         {
-            ddMemcpy("ARWING, GO!\x02", font->msgBuf, 200);
+            ddMemcpy(font->msgBuf, "ARWING, GO!\x02", 200);
             
             if (dd.play)
                 SpawnArwing(dd.play);
@@ -240,7 +240,7 @@ s32 Disk_GetENGMessage(struct Font* font)
     #ifdef SIGN_CLOCK
         if (msgC->textId == 0x31F)
         {
-            ddMemcpy("00:00:00 is the current real time!\x02", font->msgBuf, 200);
+            ddMemcpy(font->msgBuf, "00:00:00 is the current real time!\x02", 200);
             return 1;
         }
     #endif
@@ -387,13 +387,13 @@ void DoSaveStates(struct PlayState* play)
 
     if (CHECK_BTN_ALL(input->press.button, BTN_L))
     {  
-        dd.vtable.sleep(100);
+        dd.vtable.sleepMsec(100);
         void* frameBuffer = ddGetCurFrameBuffer(); 
         dd.vtable.clearFrameBuffer(frameBuffer);
         PrintTextLineToFb(frameBuffer, SAVING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
         PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);
 
-        ddMemcpy(STATE_MAGIC, &dd.sState.magic, 16);
+        ddMemcpy(&dd.sState.magic, STATE_MAGIC, 16);
         dd.sState.destinationEntrance = sc->save.entranceIndex;
         dd.sState.linkAge = sc->save.linkAge;
         dd.sState.musicId = sc->seqId;
@@ -415,7 +415,7 @@ void DoSaveStates(struct PlayState* play)
 
     if (CHECK_BTN_ALL(input->press.button, BTN_R) && !dd.sState.stateLoadCounter && play->transitionTrigger == TRANS_TRIGGER_OFF)
     {
-        dd.vtable.sleep(100);
+        dd.vtable.sleepMsec(100);
         void* frameBuffer = ddGetCurFrameBuffer();           
         dd.vtable.clearFrameBuffer(frameBuffer);
         PrintTextLineToFb(frameBuffer, CHECKING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
@@ -425,14 +425,14 @@ void DoSaveStates(struct PlayState* play)
 
         if (ddMemcmp(dd.sState.magic, STATE_MAGIC, 16))
         {
-            dd.vtable.sleep(100);
+            dd.vtable.sleepMsec(100);
             void* frameBuffer = ddGetCurFrameBuffer();           
             dd.vtable.clearFrameBuffer(frameBuffer);
             PrintTextLineToFb(frameBuffer, NO_SAVE_MSG, -1, -1, 1);
 
             dd.sState.stateLoadCounter = 0;
             dd.sState.destinationScene = -1;
-            dd.vtable.sleep(1000);
+            dd.vtable.sleepMsec(1000);
             return;
         }
 
@@ -448,6 +448,7 @@ void DoSaveStates(struct PlayState* play)
             play->envCtx.screenFillColor[3] = 255;
             play->envCtx.fillScreen = 1;
             dd.sState.stateLoadCounter = 2;
+            sc->forcedSeqId = 0xFFFF;
         }
         else
             dd.sState.stateLoadCounter = 1;
@@ -460,7 +461,7 @@ void DoSaveStates(struct PlayState* play)
         if (dd.sState.stateLoadCounter != 0)
             return;
           
-        dd.vtable.sleep(100);
+        dd.vtable.sleepMsec(100);
         void* frameBuffer = ddGetCurFrameBuffer();           
         dd.vtable.clearFrameBuffer(frameBuffer);
         PrintTextLineToFb(frameBuffer, LOADING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
@@ -493,7 +494,7 @@ void DoSaveStates(struct PlayState* play)
 void Disk_Read_MusicSafe(void* dest, s32 offset, s32 size)
 {
     *dd.vtable.haltMusicForDiskDMA = 1;
-    dd.funcTablePtr->loadFromDisk(dest, offset, size);    
+    dd.funcTablePtr->loadFromDisk(dest, offset, size); 
 }
 
 void Disk_Write_MusicSafe(void* data, u32 diskAddr, u32 len)
@@ -507,10 +508,8 @@ void Disk_Write_MusicSafe(void* data, u32 diskAddr, u32 len)
 // DISK_TYPE governs where data can be written to the disk.
 void Disk_Write(void* data, u32 diskAddr, u32 len)
 {
-    s32 lba_start;
-    s32 offset_start;
-    s32 lba_end;
-    s32 offset_end;
+    s32 lba_start, offset_start;
+    s32 lba_end, offset_end;
 
     dd.vtable.markDDUnavailable();
     dd.vtable.stopMusicThread();
@@ -518,23 +517,72 @@ void Disk_Write(void* data, u32 diskAddr, u32 len)
     dd.vtable.byteToLBAandOffset(diskAddr, &lba_start, &offset_start);
     dd.vtable.byteToLBAandOffset(diskAddr + len, &lba_end, &offset_end);
 
-    int writtenLen = 0;
-    for (int i = lba_start; i < lba_end + 1; i++)
-    {
-        int curLbaLen = dd.vtable.getLBALength(i);
-        int curLbaOffset = i == lba_start ? offset_start : 0;
-        int curWriteLen = (len - writtenLen) > (curLbaLen - curLbaOffset) ? (curLbaLen - curLbaOffset) : (len - writtenLen);
-        
-        dd.vtable.diskRead((s32)i, (void*)*dd.vtable.diskBuffer, curLbaLen);
-        ddMemcpy((void*)((u32)data + writtenLen), (void*)((u32)(*dd.vtable.diskBuffer) + curLbaOffset), curWriteLen);
-        dd.vtable.diskWrite((void*)i, (s32)*dd.vtable.diskBuffer, curWriteLen);
+    *dd.vtable.ddStartOpTime = 0;
 
-        writtenLen += curWriteLen;
+    // If the write is perfectly aligned to a LBA, then just write the data as-is.
+    if (offset_start == 0)
+    {
+        dd.vtable.diskWrite((void*)lba_start, (s32)data, len);
+
+        // Wait for completion
+        while (dd.vtable.ddUnkFunc6() != 0)
+            dd.vtable.sleepUsec(16666);
+        while (dd.vtable.ddUnkFunc7() != 0)
+            dd.vtable.sysFreeze();
+    }
+    else
+    {
+        s32 startLbaLen = dd.vtable.getLBALength(lba_start);
+        s32 startLbaWrite = startLbaLen - offset_start;
+
+        // If the write is not aligned, then read the whole LBA to buffer...
+        dd.vtable.diskRead((s32)lba_start,
+                           (void*)*dd.vtable.diskBuffer,
+                           startLbaLen);
+
+        // Write new data...
+        ddMemcpy((void*)((u32)*dd.vtable.diskBuffer + offset_start),
+                 (void*)((u32)data),
+                 startLbaWrite);
+
+        // Then write the whole LBA.
+        dd.vtable.diskWrite((void*)lba_start,
+                            (s32)*dd.vtable.diskBuffer,
+                            startLbaLen);
+
+        // Wait for completion of the first block
+        while (dd.vtable.ddUnkFunc6() != 0)
+            dd.vtable.sleepUsec(16666);
+        while (dd.vtable.ddUnkFunc7() != 0)
+            dd.vtable.sysFreeze();
+
+        // If there's more LBAs, write them.
+        if (lba_end != lba_start)
+        {
+            dd.vtable.diskWrite((void*)(lba_start + 1),
+                                (s32)data + startLbaWrite,
+                                len - startLbaWrite);
+
+            while (dd.vtable.ddUnkFunc6() != 0)
+                dd.vtable.sleepUsec(16666);
+            while (dd.vtable.ddUnkFunc7() != 0)
+                dd.vtable.sysFreeze();
+        }
+    }
+
+    // Finalize, idk
+    if (*dd.vtable.ddStartOpTime != 0) {
+        s32 elapsed =
+            (dd.funcTablePtr->osGetTime() - *dd.vtable.ddStartOpTime) * 64 / 3000;
+
+        if (1000000 - elapsed > 0)
+            dd.vtable.sleepUsec(1000000 - *dd.vtable.ddStartOpTime);
     }
 
     dd.vtable.markDDAvailable();
     dd.vtable.restartMusicThread();
 }
+
 
 void _isPrintfInit() 
 {
@@ -661,7 +709,7 @@ void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool font
             FontLoadChar_ROM(msgGfxBuf, chara);
         }
 
-        dd.vtable.printCharToFramebuffer(msgGfxBuf, xPos, yPos, 16, 16, 16, frameBuffer, SCREEN_WIDTH);
+        dd.vtable.printCharToFramebuffer(msgGfxBuf, xPos, yPos, 16, 16, 11, frameBuffer, SCREEN_WIDTH);
         xPos += width;
     }
 }

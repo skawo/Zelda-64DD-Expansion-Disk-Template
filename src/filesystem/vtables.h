@@ -51,8 +51,15 @@ typedef struct
     void (*audio_StopBgmAndFanfare) (u16 fadeOutDuration);
     void (*audio_QueueSeqCmd) (u32 cmd);
     void* (*clearFrameBuffer) (void* arg0);
-    void (*sleep) (u32 msec);
+    void (*sleepMsec) (u32 msec);
+    void (*sleepUsec) (u32 msec);
     void* (*printCharToFramebuffer) (void* charTexBuf, s32 posX, s32 posY, s32 dx, s32 dy, s32 cy, void* frameBuf, s32 screenWidth);
+    s32 (*leoTestUnitReady) (s8* status);
+    s32 (*leoBootGame) (void* entry);
+    s32 (*ddUnkFunc7) ();
+    s32 (*ddUnkFunc6) ();
+    void (*sysFreeze) ();
+    volatile OSTime* ddStartOpTime;
 } VersionVTable;
 
 #endif // VTABLES_H

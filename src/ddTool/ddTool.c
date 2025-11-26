@@ -24,7 +24,7 @@ u32 ddStrlen(const char* str)
     return ptr - str;
 }
 
-void ddMemcpy(void* src, void* dst, int n)
+void ddMemcpy(void* dst, void* src, int n)
 {
     u8* p1 = (u8*)src;
     u8* p2 = (u8*)dst;
@@ -73,7 +73,7 @@ void ddYaz0_Decompress(u8* src, u8* dst, int compr_size)
     // File is not compressed...
     if (*(u32*)src != 0x59617A30)
     {
-        ddMemcpy(src, dst, compr_size);
+        ddMemcpy(dst, src, compr_size);
         return;
     }
 

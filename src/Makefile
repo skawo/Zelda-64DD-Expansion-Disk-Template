@@ -9,10 +9,11 @@ LD      = ../tool/gcc/$(EXE)/mips64-ld
 OBJCOPY = ../tool/gcc/$(EXE)/mips64-objcopy
 OBJDUMP = ../tool/gcc/$(EXE)/mips64-objdump
 CC1_DIR = ../tool/gcc/$(EXE)
+LIBGCC = ../tool/gcc/libgcc.a
 
 SRCS    = diskCode.c filesystem.c 
 CFLAGS = -G 0 -Os -I../include/libc -I../include -fno-toplevel-reorder --std=gnu99 -mtune=vr4300 -mabi=32 -mips3 -mno-check-zero-division -fno-builtin -mno-explicit-relocs -mno-memcpy -fno-reorder-blocks -ffast-math -fno-unsafe-math-optimizations -mno-check-zero-division -fno-optimize-sibling-calls
-LDFLAGS = -T disk.ld --emit-relocs
+LDFLAGS = -T disk.ld --emit-relocs $(LIBGCC)
 
 __IPL_ENTRY =
 DISKREGION  = DISKREGION_USA

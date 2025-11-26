@@ -15,7 +15,7 @@
 
 #define FN(name) CAT(PREFIX, name)
 
-void FN(ddMemcpy)(void* src, void* dst, int n);
+void FN(ddMemcpy)(void* dst, void* src, int n);
 void FN(ddYaz0_Decompress)(u8* src, u8* dst, int compr_size);
 int FN(ddMemcmp)(void* s1, void* s2, int n);
 void FN(ddMemfill)(void* dst, u8 byte, int n);
