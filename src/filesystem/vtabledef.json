@@ -17,14 +17,6 @@
     "symbol": "bcopy"
   },
   {
-    "decl": "void* CodeSegmentStart",
-    "symbol": "_codeSegmentStart"
-  },
-  {
-    "decl": "void* funcTablePtr",
-    "symbol": "D_800FEE70"
-  },
-  {
     "decl": "void (*fontLoadChar)(u16)",
     "symbol": "Font_LoadChar"
   },
@@ -85,18 +77,6 @@
     "symbol": "MapSelect_Init"
   },
   {
-    "decl": "Gfx* (*gfxOpen) (Gfx* gfx)",
-    "symbol": "Gfx_Open"
-  }, 
-  {
-    "decl": "Gfx* (*gfxClose) (Gfx* gfx, Gfx* dst)",
-    "symbol": "Gfx_Close"
-  },
-  {
-    "decl": "void* (*gfxAlloc) (Gfx** gfxP, u32 size)",
-    "symbol": "Gfx_Alloc"
-  },
-  {
     "decl": "vu8* haltMusicForDiskDMA",
     "symbol": "D_80121214"    
   },
@@ -137,10 +117,6 @@
     "symbol": "func_801C6F78"
   },
   {
-    "decl": "u32* audioCtx",
-    "symbol": "gAudioCtx"
-  },
-  {
     "decl": "void (*audio_StopBgmAndFanfare) (u16 fadeOutDuration)",
     "symbol": "Audio_StopBgmAndFanfare"
   }, 
@@ -163,14 +139,6 @@
   {
     "decl": "void* (*printCharToFramebuffer) (void* charTexBuf, s32 posX, s32 posY, s32 dx, s32 dy, s32 cy, void* frameBuf, s32 screenWidth)",
     "symbol": "func_801CA1F0"   
-  },
-  {
-    "decl": "s32 (*leoTestUnitReady) (s8* status)",
-    "symbol": "LeoTestUnitReady"  
-  },
-  {
-    "decl": "s32 (*leoBootGame) (void* entry)",
-    "symbol": "LeoBootGame"  
   },
   {
     "decl": "s32 (*ddUnkFunc7) ()",
