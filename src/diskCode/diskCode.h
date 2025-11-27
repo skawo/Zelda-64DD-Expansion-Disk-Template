@@ -28,8 +28,8 @@
 #define ARWING
 
 typedef struct ddFuncPointers ddFuncPointers;
-typedef struct ddHookTable ddHookTable;
-typedef void (*DiskInitFunc)(ddFuncPointers*, ddHookTable*);   
+typedef struct DDHookTable DDHookTable;
+typedef void (*DiskInitFunc)(ddFuncPointers*, DDHookTable*);   
 
 typedef struct ddFuncPointers 
 {
@@ -79,9 +79,9 @@ typedef struct ddFuncPointers
     void* unk_null_3;
 } ddFuncPointers;
 
-typedef struct ddHookTable 
+typedef struct DDHookTable 
 {
-    /* 0x000 */ void (*diskInit)(ddFuncPointers*, ddHookTable*);     
+    /* 0x000 */ void (*diskInit)(ddFuncPointers*, DDHookTable*);     
     /* 0x004 */ void (*diskDestroy)(void);
     /* 0x008 */ void (*loadRoom)(struct PlayState* play, struct RoomContext* roomCtx, s32 roomNum);
     /* 0x00C */ void (*sceneInit)(struct PlayState* play);
@@ -121,7 +121,7 @@ typedef struct ddHookTable
     /* 0x070 */ s32 (*asyncDma)(struct DmaRequest* req, void* ram, uintptr_t vrom, size_t size, u32 unk, OSMesgQueue* queue, OSMesg msg);
     /* 0x074 */ void (*gameStateUpdate)(struct GameState*);
     /* 0x078 */ s32 (*cutsceneSetScript)(struct PlayState*, void*, void*);
-} ddHookTable;
+} DDHookTable;
 
 #ifdef SAVESTATES
     typedef struct DDSavedState
@@ -146,7 +146,7 @@ typedef struct DDState
 {
     PlayState* play;
     ddFuncPointers* funcTablePtr;
-    ddHookTable* hookTablePtr;
+    DDHookTable* hookTablePtr;
     s8 gameVersion;
     OSPiHandle* sISVHandle;
     VersionVTable vtable;
@@ -156,10 +156,10 @@ typedef struct DDState
     #endif
 } DDState;
 
-ddHookTable hookTable;
+DDHookTable hookTable;
 DDState dd;
 
-void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr);
+void Disk_Init(ddFuncPointers* funcTablePtr, DDHookTable* hookTablePtr);
 void Disk_Destroy();
 void Disk_PlayInit(struct PlayState* play);
 void Disk_PlayDestroy(struct PlayState* play);

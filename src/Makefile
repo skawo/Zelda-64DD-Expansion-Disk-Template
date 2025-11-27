@@ -88,7 +88,7 @@ filesystem/vtables.o: filesystem/vtables.c
 	@$(CC) -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 
 diskInfo/diskInfo.o: diskInfo/diskInfo.c
-	@echo "Compiling disk info..."
+	@echo "Compiling diskInfo..."
 	@$(CC) -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 
 diskCode/diskCode.o: diskCode/diskCode.c diskCode/funcRepl.c diskCode/funcExtend.c diskCode/ddScenes.c diskCode/static_vtables.c

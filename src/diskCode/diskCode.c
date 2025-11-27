@@ -5,7 +5,7 @@
 #include "funcRepl.c"
 #include "funcExtend.c"
 
-ddHookTable hookTable = 
+DDHookTable hookTable = 
 {
     .diskInit                   = (DiskInitFunc)&__Disk_Init_K1,
     .diskDestroy                = Disk_Destroy,
@@ -49,7 +49,7 @@ DDState dd =
 {
     .play                     = (PlayState*)NULL,
     .funcTablePtr             = (ddFuncPointers*)NULL,
-    .hookTablePtr             = (ddHookTable*)NULL,
+    .hookTablePtr             = (DDHookTable*)NULL,
     .gameVersion              = -1,
     .vtable                   = {},
     .sState                   = {.musicId = -1, .destinationScene = -1, .stateLoadCounter = 0},
@@ -57,7 +57,7 @@ DDState dd =
 
 void* vTableDiskAddrs[] = {&VTABLE_1_0, &VTABLE_1_1, NULL, &VTABLE_1_2};
 
-void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
+void Disk_Init(ddFuncPointers* funcTablePtr, DDHookTable* hookTablePtr)
 {
     funcTablePtr->osWritebackDCacheAll();
     funcTablePtr->osInvalICache((void*)RAM_START, RAM_LENGTH);
