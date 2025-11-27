@@ -39,18 +39,11 @@ SECTIONS {
 
     OFFSET += LBA_LENGTH;
 
-    .codeHeader 0 : AT(OFFSET) ALIGN(1) 
-    {
-        KEEP(*(.codeHeader))
-    } > ROM   
-
-    OFFSET += PADDING;
-
-    .diskInfo PADDING : AT(OFFSET) ALIGN(1) 
+    .diskInfo 0 : AT(OFFSET) ALIGN(1) 
     {
         KEEP(*(.diskInfo))
         . = ALIGN(32);
-    } > ROM
+    } > ROM   
 
     OFFSET += SIZEOF(.diskInfo);
 

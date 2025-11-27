@@ -5,22 +5,6 @@
 #include "funcRepl.c"
 #include "funcExtend.c"
 
-__attribute__((section(".codeHeader")))
-char Header[] = "ZELDA_DD";
-
-/* There is padding here in the file */
-
-__attribute__((section(".diskInfo")))
-diskInfo diskInfoData = 
-{
-    .diskStart    = &__Disk_Start,
-    .diskEnd      = &__Disk_End,         
-    .vramStart    = &__Disk_VramStart,
-    .vramEnd      = &__Disk_VramEnd,  
-    .hookTablePtr = &hookTable,
-    .unk_014      = { 0 }
-};
-
 ddHookTable hookTable = 
 {
     .diskInit                   = (DiskInitFunc)&__Disk_Init_K1,
@@ -70,6 +54,8 @@ DDState dd =
     .vtable                   = {},
     .sState                   = {.musicId = -1, .destinationScene = -1, .stateLoadCounter = 0},
 };
+
+void* vTableDiskAddrs[] = {&VTABLE_1_0, &VTABLE_1_1, NULL, &VTABLE_1_2};
 
 void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr)
 {

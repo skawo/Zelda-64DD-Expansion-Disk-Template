@@ -1,5 +1,5 @@
-#ifndef DISKC_H 
-#define DISKC_H
+#ifndef DISKCODE_H 
+#define DISKCODE_H
 
 #include "../../include/n64dd.h"
 #include "../../include/save.h"
@@ -29,19 +29,7 @@
 
 typedef struct ddFuncPointers ddFuncPointers;
 typedef struct ddHookTable ddHookTable;
-struct ddHookTable hookTable;
-
 typedef void (*DiskInitFunc)(ddFuncPointers*, ddHookTable*);   
-
-typedef struct diskInfo 
-{
-    /* 0x000 */ void* diskStart;     
-    /* 0x004 */ void* diskEnd;       
-    /* 0x008 */ void* vramStart; 
-    /* 0x00C */ void* vramEnd; 
-    /* 0x010 */ ddHookTable* hookTablePtr;
-    /* 0x014 */ char unk_014[0x104];
-} diskInfo; // size = 0x118
 
 typedef struct ddFuncPointers 
 {
@@ -89,7 +77,7 @@ typedef struct ddFuncPointers
     void (*flags_SetEventChkInf)(s32 flag);
     void* unk_null_2;
     void* unk_null_3;
-} ddFuncPointers; // size = 0xB0
+} ddFuncPointers;
 
 typedef struct ddHookTable 
 {
@@ -133,7 +121,7 @@ typedef struct ddHookTable
     /* 0x070 */ s32 (*asyncDma)(struct DmaRequest* req, void* ram, uintptr_t vrom, size_t size, u32 unk, OSMesgQueue* queue, OSMesg msg);
     /* 0x074 */ void (*gameStateUpdate)(struct GameState*);
     /* 0x078 */ s32 (*cutsceneSetScript)(struct PlayState*, void*, void*);
-} ddHookTable; // size = ?
+} ddHookTable;
 
 #ifdef SAVESTATES
     typedef struct DDSavedState
@@ -168,19 +156,8 @@ typedef struct DDState
     #endif
 } DDState;
 
+ddHookTable hookTable;
 DDState dd;
-u8 msgGfxBuf[0x80] __attribute__((__aligned__(64)));
-
-#ifdef DEBUGTOOLS
-    #define gISVDbgPrnAdrs ((ISVDbg*)0xB3FF0000)
-    #define ASCII_TO_U32(a, b, c, d) ((u32)((a << 24) | (b << 16) | (c << 8) | (d << 0)))
-#endif
-
-extern VersionVTable* VTABLE_1_0;
-extern VersionVTable* VTABLE_1_1;
-extern VersionVTable* VTABLE_1_2;
-
-void* vTableDiskAddrs[] = {&VTABLE_1_0, &VTABLE_1_1, NULL, &VTABLE_1_2};
 
 void Disk_Init(ddFuncPointers* funcTablePtr, ddHookTable* hookTablePtr);
 void Disk_Destroy();
@@ -211,17 +188,14 @@ void Disk_Write_MusicSafe(void* data, u32 diskAddr, u32 len);
 void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool fontStyle);
 
 extern void* __Disk_Init_K1;
-extern void* __Disk_Start;
-extern void* __Disk_End;
-extern void* __Disk_VramStart;
-extern void* __Disk_VramEnd;
 extern void* __entry;
 extern void* RAM_LENGTH;
 extern void* ROM_LENGTH;
+extern VersionVTable* VTABLE_1_0;
+extern VersionVTable* VTABLE_1_1;
+extern VersionVTable* VTABLE_1_2;
 
-#define SEGMENT_STATIC_END 0x80800000
 #define SEGMENT_STATIC_START 0x80700000
-#define SEGMENT_STATIC_START2 0x80780000
 #define ROOMS_START 0x80600000
 #define RAM_START (u32)&__entry
 #define RAM_LENGTH (u32)&RAM_LENGTH
@@ -229,4 +203,9 @@ extern void* ROM_LENGTH;
 
 #define SAVE_ID "64DD"
 
-#endif // DISKC_H
+#ifdef DEBUGTOOLS
+    #define gISVDbgPrnAdrs ((ISVDbg*)0xB3FF0000)
+    #define ASCII_TO_U32(a, b, c, d) ((u32)((a << 24) | (b << 16) | (c << 8) | (d << 0)))
+#endif
+
+#endif // DISKCODE_H

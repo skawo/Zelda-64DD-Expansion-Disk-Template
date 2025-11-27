@@ -59,17 +59,17 @@ JPN-D64: DISKREGION = DISKREGION_JPN
 JPN-D64: OUTFILENAME = "EZLJ.d64"
 JPN-D64: d64
 
-common: clean-diskSystem ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o
+common: clean-diskSystem ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskInfo/diskInfo.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o
 	@rm -f ../*.disk
 	@echo "Creating $(OUTFILENAME)..."
-	@$(LD) -o disk.elf ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o --defsym=BOOT_OFFS_VALUE=0x738C0 $(LDFLAGS)
+	@$(LD) -o disk.elf ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskInfo/diskInfo.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o --defsym=BOOT_OFFS_VALUE=0x738C0 $(LDFLAGS)
 	@$(OBJCOPY) -R .MIPS.abiflags -O binary disk.elf ../$(OUTFILENAME)
 	@dd if=/dev/zero bs=1 count=0 seek=$$((0x3DEC800)) of=../$(OUTFILENAME) 2>/dev/null
 
-d64: clean-diskSystem ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o
+d64: clean-diskSystem ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskInfo/diskInfo.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o
 	@rm -f ../*.disk
 	@echo "Creating $(OUTFILENAME)..."
-	@$(LD) -o disk.elf ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o --defsym=BOOT_OFFS_VALUE=0x200 $(LDFLAGS)
+	@$(LD) -o disk.elf ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskInfo/diskInfo.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o --defsym=BOOT_OFFS_VALUE=0x200 $(LDFLAGS)
 	@$(OBJCOPY) -R .MIPS.abiflags -O binary disk.elf ../$(OUTFILENAME)
 
 ddTool/ddTool.o: ddTool/ddTool.c
@@ -85,6 +85,10 @@ filesystem/filesystem.o: filesystem/filesystem.s
 
 filesystem/vtables.o: filesystem/vtables.c
 	@echo "Compiling vtables..."
+	@$(CC) -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
+
+diskInfo/diskInfo.o: diskInfo/diskInfo.c
+	@echo "Compiling disk info..."
 	@$(CC) -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 
 diskCode/diskCode.o: diskCode/diskCode.c diskCode/funcRepl.c diskCode/funcExtend.c diskCode/ddScenes.c diskCode/static_vtables.c

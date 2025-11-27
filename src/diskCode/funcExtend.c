@@ -81,7 +81,8 @@ void Disk_Write(void* data, u32 diskAddr, u32 len)
     }
 
     // Finalize, idk
-    if (*dd.vtable.ddStartOpTime != 0) {
+    if (*dd.vtable.ddStartOpTime != 0) 
+    {
         s32 elapsed =
             (dd.funcTablePtr->osGetTime() - *dd.vtable.ddStartOpTime) * 64 / 3000;
 
@@ -186,6 +187,7 @@ void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool font
 {
     int msgGfxOffs = 0;
     int msgWidth = 0;
+    static u8 msgGfxBuf[0x80];
 
     if (xPos == -1)
     {
