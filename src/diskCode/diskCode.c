@@ -386,6 +386,7 @@ void DoSaveStates(struct PlayState* play)
     int diskPos = ROM_LENGTH - saveSize;
     ALIGN(diskPos, 32);
 
+    // Save state
     if (CHECK_BTN_ALL(input->press.button, BTN_L))
     {  
         dd.vtable.sleepMsec(100);
@@ -414,6 +415,7 @@ void DoSaveStates(struct PlayState* play)
         return;
     }
 
+    // Trigger load state
     if (CHECK_BTN_ALL(input->press.button, BTN_R) && !dd.sState.stateLoadCounter && play->transitionTrigger == TRANS_TRIGGER_OFF)
     {
         dd.vtable.sleepMsec(100);
@@ -437,6 +439,7 @@ void DoSaveStates(struct PlayState* play)
             return;
         }
 
+        // If we're not in the destination area already, go there.
         if (sc->save.entranceIndex != dd.sState.destinationEntrance)
         {
             dd.vtable.audio_StopBgmAndFanfare(0);
@@ -455,6 +458,7 @@ void DoSaveStates(struct PlayState* play)
             dd.sState.stateLoadCounter = 1;
     }    
 
+    // Upon reaching the destination area, load state from disk.
     if (dd.sState.destinationScene == play->sceneId && dd.sState.stateLoadCounter)
     {
         dd.sState.stateLoadCounter--;
