@@ -31,6 +31,4 @@ void* FN(ddGetCurFrameBuffer)();
 #define ddStrlen FN(ddStrlen)
 #define ddGetCurFrameBuffer FN(ddGetCurFrameBuffer)
 
-#define ALIGN(pos, to)  ((pos) = ((pos) + ((to) - 1)) & ~((to) - 1))
-
 #endif // DDTOOL_H

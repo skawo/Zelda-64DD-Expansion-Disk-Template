@@ -1,7 +1,7 @@
 #include "diskCode.h"
 
 // These perform their respective action without killing the audio engine.
-void Disk_Read_MusicSafe(void* dest, s32 offset, s32 size)
+void Disk_Load_MusicSafe(void* dest, s32 offset, s32 size)
 {
     *dd.vtable.haltMusicForDiskDMA = 1;
     dd.funcTablePtr->loadFromDisk(dest, offset, size); 
@@ -46,7 +46,7 @@ void Disk_Write(void* data, u32 diskAddr, u32 len)
         s32 startLbaWrite = startLbaLen - offset_start;
 
         // If the write is not aligned, then read the whole LBA to buffer...
-        dd.vtable.diskRead((s32)lba_start,
+        dd.vtable.diskLoad((s32)lba_start,
                            (void*)*dd.vtable.diskBuffer,
                            startLbaLen);
 
@@ -175,7 +175,7 @@ void is64Printf(const char* fmt, ...)
 void ShowFullScreenGraphic(void* graphic, u32 graphicLen, bool halt)
 {
     u8* comprBuf = (u8*)SEGMENT_STATIC_START;
-    Disk_Read_MusicSafe(comprBuf, (u32)graphic, graphicLen);
+    Disk_Load_MusicSafe(comprBuf, (u32)graphic, graphicLen);
     void* frameBuffer = ddGetCurFrameBuffer(); 
     ddYaz0_Decompress(comprBuf, frameBuffer, graphicLen);
 

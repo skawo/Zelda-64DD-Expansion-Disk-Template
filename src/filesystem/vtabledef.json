@@ -85,7 +85,7 @@
     "symbol": "func_801C79CC"
   },
   {
-    "decl": "void* (*diskRead) (s32 arg0, void* arg1, s32 arg2)",
+    "decl": "void* (*diskLoad) (s32 arg0, void* arg1, s32 arg2)",
     "symbol": "func_801C7920"
   },  
   {
@@ -155,5 +155,5 @@
   {
     "decl": "volatile OSTime* ddStartOpTime",
     "symbol": "B_801D9DC0"
-  }           
+  }
 ]

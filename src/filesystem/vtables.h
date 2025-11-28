@@ -34,7 +34,7 @@ typedef struct
     void (*mapSelectInit) (GameState* thisx);
     vu8* haltMusicForDiskDMA;
     void* (*diskWrite) (void* arg0, s32 arg1, s32 arg2);
-    void* (*diskRead) (s32 arg0, void* arg1, s32 arg2);
+    void* (*diskLoad) (s32 arg0, void* arg1, s32 arg2);
     void* (*byteToLBAandOffset) (s32 arg0, s32* arg1, s32* arg2);
     s32 (*getLBALength) (s32 startLBA);
     void** diskBuffer;

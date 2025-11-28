@@ -13,21 +13,21 @@ DDHookTable hookTable =
     .sceneInit                  = NULL,
     .playInit                   = Disk_PlayInit,
     .playDestroy                = Disk_PlayDestroy,
-    .mapDataInit                = NULL,
-    .mapDataDestroy             = NULL,
-    .mapDataSetDungeons         = NULL,
-    .mapExpDestroy              = NULL,
-    .mapExpTextureLoadDungeons  = NULL,
+    .miniMapDataInit            = NULL,
+    .miniMapDataDestroy         = NULL,
+    .miniMapDataSetDungeons     = NULL,
+    .miniMapDestroy             = NULL,
+    .miniMapLoadTextureDungeons = Disk_LoadMinimap,
     .mapMarkInit                = NULL,
     .mapMarkDestroy             = NULL,
     .pauseMapMarkInit           = NULL,
     .pauseMapMarkDestroy        = NULL,
-    .kaleidoInit                = NULL,
-    .kaleidoDestroy             = NULL,
-    .kaleidoLoadDungeonMap      = NULL,
+    .pauseInit                  = NULL,
+    .pauseDestroy               = NULL,
+    .pauseLoadDungeonMap        = Disk_LoadDungeonMap,
     .getSceneEntry              = Disk_GetSceneEntry,
     .unk_4C                     = { },
-    .handleEntranceTriggers     = NULL,
+    .handleEntranceTriggers     = Disk_HandleEntranceTriggers,
     .setMessageTables           = NULL,
     .unk_5C                     = { },
     .loadCreditsMsg             = NULL,
@@ -240,6 +240,34 @@ void Disk_SetMessageTables(struct MessageTableEntry** Japanese, struct MessageTa
 {
 }
 
+void Disk_LoadDungeonMap(struct PlayState* play)
+{
+    InterfaceContext* interfaceCtx = &play->interfaceCtx;
+    Disk_Load_MusicSafe(interfaceCtx->mapSegment, (u32)DUNGEONMAPLEFTTEXTURE_BIN, DUNGEONMAPLEFTTEXTURE_BIN_LEN);
+    Disk_Load_MusicSafe(interfaceCtx->mapSegment + ALIGN16(MAP_48x85_TEX_SIZE), (u32)DUNGEONMAPRIGHTTEXTURE_BIN, DUNGEONMAPRIGHTTEXTURE_BIN_LEN);
+}
+
+s32 Disk_LoadMinimap(struct PlayState* play)
+{
+    InterfaceContext* interfaceCtx = &play->interfaceCtx;
+    Disk_Load_MusicSafe(interfaceCtx->mapSegment, (u32)DUNGEONMINIMAP_BIN, DUNGEONMINIMAP_BIN_LEN);
+    return 1;
+}
+
+s32 Disk_HandleEntranceTriggers(struct PlayState* play)
+{
+    if (play->sceneId == SCENE_ZORAS_RIVER)
+    {
+        Disk_Load_MusicSafe((void*)SEGMENT_STATIC_START, (u32)CUTSCENEZORARIVER_BIN, CUTSCENEZORARIVER_BIN_LEN);
+        play->csCtx.script = (void*)SEGMENT_STATIC_START;
+        dd.funcTablePtr->saveContext->cutsceneTrigger = 2;
+        dd.funcTablePtr->saveContext->showTitleCard = false;
+        return 1;
+    }
+    else
+        return 0;
+}
+
 // ===========================================================================================================
 
 #ifdef DVDLOGO
@@ -370,7 +398,7 @@ void DoSaveStates(struct PlayState* play)
 
     int saveSize =  0x785C8 + sizeof(DDSavedState) + sizeof(gSaveContext) + (RAM_START - (u32)&play) + 0x1610 + 0x100;
     int diskPos = ROM_LENGTH - saveSize;
-    ALIGN(diskPos, 32);
+    ALIGN32(diskPos);
 
     // Save state
     if (CHECK_BTN_ALL(input->press.button, BTN_L))
@@ -390,11 +418,11 @@ void DoSaveStates(struct PlayState* play)
 
         Disk_Write_MusicSafe(&dd.sState, diskPos, sizeof(DDSavedState));
         diskPos += sizeof(DDSavedState);
-        ALIGN(diskPos, 32);
+        ALIGN32(diskPos);
 
         Disk_Write_MusicSafe(sc, diskPos, sizeof(gSaveContext));
         diskPos += sizeof(gSaveContext);     
-        ALIGN(diskPos, 32);       
+        ALIGN32(diskPos);       
 
         u32 plAddr = (u32)play;
         Disk_Write_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - (u32)&play) + 0x1610);
@@ -410,7 +438,7 @@ void DoSaveStates(struct PlayState* play)
         PrintTextLineToFb(frameBuffer, CHECKING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
         PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);   
 
-        Disk_Read_MusicSafe(&dd.sState, diskPos, sizeof(DDSavedState));
+        Disk_Load_MusicSafe(&dd.sState, diskPos, sizeof(DDSavedState));
 
         if (ddMemcmp(dd.sState.magic, STATE_MAGIC, 16))
         {
@@ -459,14 +487,14 @@ void DoSaveStates(struct PlayState* play)
         PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);           
 
         diskPos += sizeof(DDSavedState); 
-        ALIGN(diskPos, 32);
+        ALIGN32(diskPos);
 
-        Disk_Read_MusicSafe(sc, diskPos, sizeof(gSaveContext));
+        Disk_Load_MusicSafe(sc, diskPos, sizeof(gSaveContext));
         diskPos += sizeof(gSaveContext);
-        ALIGN(diskPos, 32);       
+        ALIGN32(diskPos);       
 
         u32 plAddr = (u32)play;
-        Disk_Read_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - (u32)&play) + 0x1610);
+        Disk_Load_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - (u32)&play) + 0x1610);
 
         dd.funcTablePtr->osWritebackDCacheAll();
         dd.funcTablePtr->osInvalICache((void*)0x80000000, 0x400000);       

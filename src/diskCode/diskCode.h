@@ -13,6 +13,7 @@
 #include "../../include/fault.h"
 #include "../../include/audio.h"
 #include "../../include/map_select_state.h"
+#include "../../include/map.h"
 
 #include "../ddTool/ddTool.h"
 
@@ -87,18 +88,18 @@ typedef struct DDHookTable
     /* 0x00C */ void (*sceneInit)(struct PlayState* play);
     /* 0x010 */ void (*playInit)(struct PlayState* play);
     /* 0x014 */ void (*playDestroy)(struct PlayState* play);
-    /* 0x018 */ s32 (*mapDataInit)(struct MapData**);
-    /* 0x01C */ s32 (*mapDataDestroy)(struct MapData**);
-    /* 0x020 */ s32 (*mapDataSetDungeons)(struct MapData*);
-    /* 0x024 */ s32 (*mapExpDestroy)(void);
-    /* 0x028 */ s32 (*mapExpTextureLoadDungeons)(struct PlayState*);
+    /* 0x018 */ s32 (*miniMapDataInit)(struct MapData**);
+    /* 0x01C */ s32 (*miniMapDataDestroy)(struct MapData**);
+    /* 0x020 */ s32 (*miniMapDataSetDungeons)(struct MapData*);
+    /* 0x024 */ s32 (*miniMapDestroy)(void);
+    /* 0x028 */ s32 (*miniMapLoadTextureDungeons)(struct PlayState*);
     /* 0x02C */ s32 (*mapMarkInit)(MapMarkData***);
     /* 0x030 */ s32 (*mapMarkDestroy)(MapMarkData***);
     /* 0x034 */ void (*pauseMapMarkInit)(PauseMapMarksData**);
     /* 0x038 */ void (*pauseMapMarkDestroy)(PauseMapMarksData**);
-    /* 0x03C */ void (*kaleidoInit)(void);
-    /* 0x040 */ void (*kaleidoDestroy)(void);
-    /* 0x044 */ s32 (*kaleidoLoadDungeonMap)(struct PlayState*);
+    /* 0x03C */ void (*pauseInit)(void);
+    /* 0x040 */ void (*pauseDestroy)(void);
+    /* 0x044 */ void (*pauseLoadDungeonMap)(struct PlayState*);
     /* 0x048 */ struct SceneTableEntry* (*getSceneEntry)(s32 sceneId, struct SceneTableEntry* sceneTable);
     /* 0x04C */ char unk_4C[0x08];
     /* 0x054 */ s32 (*handleEntranceTriggers)(struct PlayState*);
@@ -166,7 +167,9 @@ void Disk_PlayDestroy(struct PlayState* play);
 void Disk_SceneInit(struct PlayState* play);
 void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func);
 void Disk_GameState(struct GameState* state);
-void Disk_KaleidoDestroy();
+s32 Disk_LoadMinimap(struct PlayState* play);
+void Disk_LoadDungeonMap(struct PlayState* play);
+s32 Disk_HandleEntranceTriggers(struct PlayState* play);
 s32 Disk_GetENGMessage(struct Font*);
 void Disk_SetMessageTables(struct MessageTableEntry** Japanese, struct MessageTableEntry** English, struct MessageTableEntry** Credits);
 struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* sceneTable);
@@ -182,7 +185,7 @@ void is64Printf(const char* fmt, ...);
 void DoClockDisplayOnLinkHouseSign(struct PlayState* play);
 void RestoreMapSelect(struct PlayState* play);
 void DoSaveStates(struct PlayState* play);
-void Disk_Read_MusicSafe(void* dest, s32 offset, s32 size);
+void Disk_Load_MusicSafe(void* dest, s32 offset, s32 size);
 void Disk_Write(void* data, u32 diskAddr, u32 len);
 void Disk_Write_MusicSafe(void* data, u32 diskAddr, u32 len);
 void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool fontStyle);
