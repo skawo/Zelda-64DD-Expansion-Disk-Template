@@ -59,9 +59,8 @@ entries = []
 for e in raw_entries:
     decl = e["decl"]
     symbol = e["symbol"]
-    is_static = e.get("static", False)   # <-- default if missing
+    is_static = e.get("static", False)
 
-    # Extract field name & pointer-ness exactly like original script
     m_fp = re.search(r'\(\s*\*\s*([A-Za-z_]\w*)\s*\)', decl)
     if m_fp:
         field_name = m_fp.group(1)
@@ -125,7 +124,6 @@ for e in entries:
         sc_lines.append("{")
 
         for idx, ver in enumerate(VERSION_LIST):
-            # maintain original behavior: index 2 = NULL
             if idx == 2:
                 sc_lines.append("    NULL,")
 
@@ -133,6 +131,7 @@ for e in entries:
             val = version_symbols[ver].get(lookup)
 
             if val is None:
+                print(f"{val} not found")
                 sc_lines.append("    NULL,  /* missing */")
             else:
                 sc_lines.append(f"    (void*){val},")
@@ -164,6 +163,7 @@ for ver in VERSION_LIST:
         val = symbols.get(lookup)
 
         if val is None:
+            print(f"{lookup} not found")
             c_lines.append(f"    .{fname} = NULL,  // {lookup} not found")
         else:
             if e["is_pointer"]:
