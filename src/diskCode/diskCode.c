@@ -464,7 +464,7 @@ void DoSaveStates(struct PlayState* play)
         }
 
         // If we're not in the destination area already, go there.
-        if (true || sc->save.entranceIndex != dd.sState.destinationEntrance)
+        if (sc->save.entranceIndex != dd.sState.destinationEntrance)
         {
             dd.vtable.audio_StopBgmAndFanfare(0);
             play->nextEntranceIndex = dd.sState.destinationEntrance;
