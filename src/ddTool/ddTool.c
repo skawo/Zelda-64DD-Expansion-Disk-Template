@@ -8,15 +8,11 @@ typedef struct Yaz0Header
     u32 uncompDataOffset;
 } Yaz0Header;
 
+// This may return + one scanline (+0x280)
 void* ddGetCurFrameBuffer()
 {
     u32* viReg = (u32*)K0_TO_K1(VI_ORIGIN_REG);
     return (void*)K0_TO_K1(*viReg);     
-}
-
-void ddClearFramebuffer(void* fbuf)
-{
-    ddMemfill(fbuf, 0, SCREEN_WIDTH * SCREEN_HEIGHT * 2);
 }
 
 u32 ddStrlen(const char* str) 

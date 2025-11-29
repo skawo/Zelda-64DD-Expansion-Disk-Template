@@ -217,7 +217,7 @@ void* ddCache_AllocFile(DDCache* cache, u32 fileDiskStart, int len, u8 type)
                 is64Printf("Unable to allocate %x bytes\n", alignedLen);
                 return NULL;
             }
-            
+
             continue;
         }
     }
@@ -225,8 +225,6 @@ void* ddCache_AllocFile(DDCache* cache, u32 fileDiskStart, int len, u8 type)
 
 void* ddCache_LoadFile(DDCache* cache, u32 offset, u32 len, u8 type)
 {
-
-
     for (int i = 0; i < DDCACHE_MAXFILES; i++)
     {
         DDFile* checkedFile = &cache->files[i];

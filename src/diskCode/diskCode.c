@@ -90,6 +90,9 @@ void Disk_Init(ddFuncPointers* funcTablePtr, DDHookTable* hookTablePtr)
         ShowFullScreenGraphic(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
 
     _isPrintfInit();
+
+    is64Printf("dd at %x!\n", &dd); 
+
     Functions_ReplaceAll(replFunctions, replFunctionsCount);
 
     ddCache_Init(&dd.cache);
@@ -126,6 +129,8 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
 {
     func[play->sceneDrawConfig](play);  
     //dd.funcTablePtr->faultDrawText(25, 25, "%x %x %x", *dd.vtable.diskBuffer, lba, offset);
+
+    //is64Printf("%x, %x\n", dd.vtable.fbPtrs[0], dd.vtable.fbPtrs[1]);
 
     #ifdef MAP_SELECT
         RestoreMapSelect(play);
@@ -400,9 +405,8 @@ void DoSaveStates(struct PlayState* play)
     // Save state
     if (CHECK_BTN_ALL(input->press.button, BTN_L))
     {  
-        dd.vtable.sleepMsec(100);
-        void* frameBuffer = ddGetCurFrameBuffer(); 
-        ddClearFramebuffer(frameBuffer);
+        void* frameBuffer = getCurLatchedFbuf();
+        dd.vtable.clearFrameBuffer(frameBuffer);
         PrintTextLineToFb(frameBuffer, SAVING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
         PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);
 
@@ -440,9 +444,8 @@ void DoSaveStates(struct PlayState* play)
     // Trigger load state
     if (CHECK_BTN_ALL(input->press.button, BTN_R) && !dd.sState.stateLoadCounter && play->transitionTrigger == TRANS_TRIGGER_OFF)
     {
-        dd.vtable.sleepMsec(100);
-        void* frameBuffer = ddGetCurFrameBuffer();           
-        ddClearFramebuffer(frameBuffer);
+        void* frameBuffer = getCurLatchedFbuf();  
+        dd.vtable.clearFrameBuffer(frameBuffer);
         PrintTextLineToFb(frameBuffer, CHECKING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
         PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);   
 
@@ -450,8 +453,7 @@ void DoSaveStates(struct PlayState* play)
 
         if (ddMemcmp(dd.sState.magic, STATE_MAGIC, 8))
         {
-            dd.vtable.sleepMsec(100);
-            void* frameBuffer = ddGetCurFrameBuffer();           
+            void* frameBuffer = getCurLatchedFbuf(); 
             dd.vtable.clearFrameBuffer(frameBuffer);
             PrintTextLineToFb(frameBuffer, NO_SAVE_MSG, -1, -1, 1);
 
@@ -488,9 +490,8 @@ void DoSaveStates(struct PlayState* play)
         if (dd.sState.stateLoadCounter != 0)
             return;
           
-        dd.vtable.sleepMsec(100);
-        void* frameBuffer = ddGetCurFrameBuffer();           
-        ddClearFramebuffer(frameBuffer);
+        void* frameBuffer = getCurLatchedFbuf();        
+        dd.vtable.clearFrameBuffer(frameBuffer);
         PrintTextLineToFb(frameBuffer, LOADING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
         PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);           
 

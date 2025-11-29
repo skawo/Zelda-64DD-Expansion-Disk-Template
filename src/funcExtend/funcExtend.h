@@ -16,5 +16,6 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count);
 void is64Printf(const char* fmt, ...) ;
 void ShowFullScreenGraphic(void* graphic, u32 graphicLen);
 void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool fontStyle);
+void* getCurLatchedFbuf();
 
 #endif // FUNCEXTEND_H

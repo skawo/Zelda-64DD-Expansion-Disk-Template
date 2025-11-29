@@ -171,6 +171,10 @@
   {
     "decl": "void (*arenaImpl_GetSizes) (Arena* arena, u32* outMaxFree, u32* outFree, u32* outAlloc)",
     "symbol": "ArenaImpl_GetSizes"  
-  }   
+  },
+  {
+    "decl": "u32* fbPtrs",
+    "symbol": "sSysCfbFbPtr"  
+  }       
 ]
 

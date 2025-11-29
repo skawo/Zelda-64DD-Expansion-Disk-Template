@@ -58,7 +58,7 @@ SECTIONS {
     OFFSET += SIZEOF(.rom);
 
     . = ORIGIN(RAM);
-    .text : AT(OFFSET) ALIGN(4) 
+    .text : AT(OFFSET)
     {
         __entry = .;
         *(.text*)
@@ -67,21 +67,21 @@ SECTIONS {
     } > RAM
     
     . = ALIGN(32);
-    .rodata : ALIGN(4) 
+    .rodata :
     {
         *(.rodata*)
         *(.eh_frame*)
     } > RAM
 
     . = ALIGN(32);
-    .data : ALIGN(4) 
+    .data :
     {
         *(.data*)
         *(.sdata*)
     } > RAM
 
     . = ALIGN(32);
-    .bss : ALIGN(4) 
+    .bss :
     {
         *(COMMON)
         *(.bss*)

@@ -33,7 +33,6 @@ void* FN(ddMemmove)(void* dest, void* src, int n);
 #define ddGetSJisIndex FN(ddGetSJisIndex)
 #define ddStrlen FN(ddStrlen)
 #define ddGetCurFrameBuffer FN(ddGetCurFrameBuffer)
-#define ddClearFramebuffer FN(ddClearFramebuffer)
 #define ddMemmove FN(ddMemmove)
 
 #endif // DDTOOL_H

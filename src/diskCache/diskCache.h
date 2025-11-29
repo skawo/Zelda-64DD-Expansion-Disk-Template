@@ -6,7 +6,7 @@
 #include "../include/libc64/os_malloc.h"
 #include "../ddTool/ddTool.h"
 
-#define DDCACHE_START (void*)0x80601000
+#define DDCACHE_START (void*)0x80600000
 #define DDCACHE_END (void*)0x80800000
 #define DDCACHE_SIZE DDCACHE_END - DDCACHE_START
 #define DDCACHE_MAXFILES 128

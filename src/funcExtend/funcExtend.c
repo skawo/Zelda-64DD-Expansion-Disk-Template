@@ -172,6 +172,17 @@ void is64Printf(const char* fmt, ...)
     #endif
 }
 
+void* getCurLatchedFbuf()
+{
+    dd.vtable.sleepMsec(100);    
+    void* fBuf = ddGetCurFrameBuffer();
+
+    if (ABS((u32)fBuf - K0_TO_K1(dd.vtable.fbPtrs[0])) > (ABS((u32)fBuf - K0_TO_K1(dd.vtable.fbPtrs[1]))))
+        return (void*)K0_TO_K1(dd.vtable.fbPtrs[1]);
+    else
+        return (void*)K0_TO_K1(dd.vtable.fbPtrs[0]);
+}
+
 void ShowFullScreenGraphic(void* graphic, u32 graphicLen)
 {
     u8* comprBuf = (u8*)0x80700000;

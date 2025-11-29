@@ -44,6 +44,7 @@ VersionVTable VTABLE_1_0 __attribute__((__aligned__(32))) =
     .osMalloc = (void*)0x800CE060,
     .osFree = (void*)0x800CE2B4,
     .arenaImpl_GetSizes = (void*)0x800CE688,
+    .fbPtrs = (void*)0x80120FD0,
 };
 
 VersionVTable VTABLE_1_1 __attribute__((__aligned__(32))) =
@@ -90,6 +91,7 @@ VersionVTable VTABLE_1_1 __attribute__((__aligned__(32))) =
     .osMalloc = (void*)0x800CE220,
     .osFree = (void*)0x800CE474,
     .arenaImpl_GetSizes = (void*)0x800CE848,
+    .fbPtrs = (void*)0x80121190,
 };
 
 VersionVTable VTABLE_1_2 __attribute__((__aligned__(32))) =
@@ -136,4 +138,5 @@ VersionVTable VTABLE_1_2 __attribute__((__aligned__(32))) =
     .osMalloc = (void*)0x800CE8A0,
     .osFree = (void*)0x800CEAF4,
     .arenaImpl_GetSizes = (void*)0x800CEEC8,
+    .fbPtrs = (void*)0x801218A0,
 };

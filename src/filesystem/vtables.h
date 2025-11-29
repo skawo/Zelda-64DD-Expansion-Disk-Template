@@ -57,6 +57,7 @@ typedef struct
     void* (*osMalloc) (Arena* arena, u32 size);
     void (*osFree) (Arena* arena, void* ptr);
     void (*arenaImpl_GetSizes) (Arena* arena, u32* outMaxFree, u32* outFree, u32* outAlloc);
+    u32* fbPtrs;
 } VersionVTable;
 
 #endif // VTABLES_H
