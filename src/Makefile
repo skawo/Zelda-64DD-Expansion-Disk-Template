@@ -11,7 +11,6 @@ OBJDUMP = ../tool/gcc/$(EXE)/mips64-objdump
 CC1_DIR = ../tool/gcc/$(EXE)
 LIBGCC = ../tool/gcc/libgcc.a
 
-SRCS    = diskCode.c filesystem.c 
 CFLAGS = -G 0 -Os -I../include/libc -I../include -fno-toplevel-reorder --std=gnu99 -mtune=vr4300 -mabi=32 -mips3 -mno-check-zero-division -fno-builtin -mno-explicit-relocs -mno-memcpy -fno-reorder-blocks -ffast-math -fno-unsafe-math-optimizations -mno-check-zero-division -fno-optimize-sibling-calls
 LDFLAGS = -T disk.ld --emit-relocs $(LIBGCC)
 
@@ -59,17 +58,30 @@ JPN-D64: DISKREGION = DISKREGION_JPN
 JPN-D64: OUTFILENAME = "EZLJ.d64"
 JPN-D64: d64
 
-common: clean-diskSystem ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskInfo/diskInfo.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o
+OBJS = ddTool/ddTool.o \
+filesystem/filesystem.o \
+filesystem/vtables.o \
+ddTool/ddToolCode.o \
+diskInfo/diskInfo.o \
+diskCache/diskCache.o \
+funcRepl/funcRepl.o \
+funcExtend/funcExtend.o \
+diskScenes/diskScenes.o \
+diskCode/diskCode.o \
+diskBoot/diskBoot.o \
+diskSystem/diskSystem.o
+
+common: clean-diskSystem $(OBJS)
 	@rm -f ../*.disk
 	@echo "Creating $(OUTFILENAME)..."
-	@$(LD) -o disk.elf ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskInfo/diskInfo.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o --defsym=BOOT_OFFS_VALUE=0x738C0 $(LDFLAGS)
+	@$(LD) -o disk.elf $(OBJS) --defsym=BOOT_OFFS_VALUE=0x738C0 $(LDFLAGS)
 	@$(OBJCOPY) -R .MIPS.abiflags -O binary disk.elf ../$(OUTFILENAME)
 	@dd if=/dev/zero bs=1 count=0 seek=$$((0x3DEC800)) of=../$(OUTFILENAME) 2>/dev/null
 
-d64: clean-diskSystem ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskInfo/diskInfo.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o
+d64: clean-diskSystem $(OBJS)
 	@rm -f ../*.disk
 	@echo "Creating $(OUTFILENAME)..."
-	@$(LD) -o disk.elf ddTool/ddTool.o filesystem/filesystem.o filesystem/vtables.o ddTool/ddToolCode.o diskInfo/diskInfo.o diskCode/diskCode.o diskBoot/diskBoot.o diskSystem/diskSystem.o --defsym=BOOT_OFFS_VALUE=0x200 $(LDFLAGS)
+	@$(LD) -o disk.elf $(OBJS) --defsym=BOOT_OFFS_VALUE=0x200 $(LDFLAGS)
 	@$(OBJCOPY) -R .MIPS.abiflags -O binary disk.elf ../$(OUTFILENAME)
 
 ddTool/ddTool.o: ddTool/ddTool.c
@@ -91,13 +103,29 @@ diskInfo/diskInfo.o: diskInfo/diskInfo.c
 	@echo "Compiling diskInfo..."
 	@$(CC) -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 
-diskCode/diskCode.o: diskCode/diskCode.c diskCode/funcRepl.c diskCode/funcExtend.c diskCode/ddScenes.c diskCode/static_vtables.c
+diskCache/diskCache.o: diskCache/diskCache.c
+	@echo "Compiling diskCache..."
+	@$(CC) -DPREFIX=ram_ -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
+
+diskCode/diskCode.o: diskCode/diskCode.c diskCode/static_vtables.c
 	@echo "Compiling diskCode..."
 	@$(CC) -DPREFIX=ram_ -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 
 diskBoot/diskBoot.o: diskBoot/diskBoot.c
 	@echo "Compiling diskBoot..."
 	@$(CC) -DPREFIX=boot_ -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
+
+diskScenes/diskScenes.o: diskScenes/diskScenes.c
+	@echo "Compiling diskScenes..."
+	@$(CC) -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
+
+funcExtend/funcExtend.o: funcExtend/funcExtend.c
+	@echo "Compiling funcExtend..."
+	@$(CC) -DPREFIX=ram_ -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)	
+
+funcRepl/funcRepl.o: funcRepl/funcRepl.c
+	@echo "Compiling funcRepl..."
+	@$(CC) -DPREFIX=ram_ -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)		
 
 diskSystem/diskSystem.o: diskSystem/diskSystem.c
 	@echo "Compiling diskSystem..."
@@ -110,4 +138,4 @@ clean-diskSystem:
 
 clean:
 	@rm -f ../*.disk ../*.ndd ../*.d64
-	@rm -f ddTool/*.o filesystem/*.o diskCode/*.o diskBoot/*.o diskSystem/*.o
+	@rm -f ddTool/*.o diskBoot/*.o diskCache/*.o diskCode/*.o diskInfo/*.o diskScenes/*.o diskSystem/*.o filesystem/*.o funcExtend/*.o funcRepl/*.o

@@ -1,4 +1,5 @@
 #include "funcRepl.h"
+#include "../diskCode/diskCode.h"
 
 void Functions_ReplaceAll(FuncReplacement* table, int numEntries)
 {
@@ -19,7 +20,6 @@ void Functions_ReplaceAll(FuncReplacement* table, int numEntries)
         dd.funcTablePtr->osInvalICache(targetFunc, 8);
     }
 }
-
 
 // ==============================================================================
 
@@ -53,7 +53,7 @@ void TitleCard_InitPlaceName_Repl(PlayState* play, TitleCardContext* titleCtx, v
     if ((size != 0) && (size <= 0x1000 * LANGUAGE_MAX)) 
     {
         if (loadedScene->unk_12)
-            dd.funcTablePtr->loadFromDisk(texture, loadedScene->titleFile.vromStart, size);
+            ddCache_LoadFileTo(texture, &dd.cache, loadedScene->titleFile.vromStart, size);
         else
             dd.funcTablePtr->dmaMgrRequestSync(texture, loadedScene->titleFile.vromStart, size);
     }
@@ -74,3 +74,5 @@ DD_FUNC_REPLACEMENTS
         FUNC_REPL_ENTRY(dd.vtable.fontLoadChar, Font_LoadChar_Repl),  
     #endif           
 );
+
+const s32 replFunctionsCount = ARRAY_COUNT(replFunctions);

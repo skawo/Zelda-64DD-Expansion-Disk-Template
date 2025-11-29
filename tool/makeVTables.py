@@ -27,6 +27,7 @@ INCLUDES = [
     '#include "../include/controller.h"',
     '#include "../include/sfx.h"',
     '#include "../include/fault.h"',
+    '#include "../include/libc64/os_malloc.h"',
 ]
 
 define_re = re.compile(r'^\s*#define\s+(\S+)\s+(0x[0-9A-Fa-f]+|\d+)\b')

@@ -13,7 +13,7 @@
     "symbol": "Actor_Spawn"
   },
   {
-    "decl": "void (*bcopy)(u8, const void*, void*, int)",
+    "decl": "void (*bcopy)(const void*, void*, int)",
     "symbol": "bcopy"
   },
   {
@@ -155,5 +155,22 @@
   {
     "decl": "volatile OSTime* ddStartOpTime",
     "symbol": "B_801D9DC0"
-  }
+  },
+  {
+    "decl": "void (*osMallocInit) (Arena* arena, void* start, s32 size)",
+    "symbol": "__osMallocInit"  
+  },
+  {
+    "decl": "void* (*osMalloc) (Arena* arena, u32 size)",
+    "symbol": "__osMalloc"  
+  },  
+  {
+    "decl": "void (*osFree) (Arena* arena, void* ptr)",
+    "symbol": "__osFree"  
+  },  
+  {
+    "decl": "void (*arenaImpl_GetSizes) (Arena* arena, u32* outMaxFree, u32* outFree, u32* outAlloc)",
+    "symbol": "ArenaImpl_GetSizes"  
+  }   
 ]
+

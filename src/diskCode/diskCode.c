@@ -1,9 +1,5 @@
 #include "diskCode.h"
-
-#include "ddScenes.c"
 #include "static_vtables.c"
-#include "funcRepl.c"
-#include "funcExtend.c"
 
 DDHookTable hookTable = 
 {
@@ -52,7 +48,10 @@ DDState dd =
     .hookTablePtr             = (DDHookTable*)NULL,
     .gameVersion              = -1,
     .vtable                   = {},
-    .sState                   = {.musicId = -1, .destinationScene = -1, .stateLoadCounter = 0},
+
+    #ifdef SAVESTATES
+    .sState                   = { .magic = STATE_MAGIC, .musicId = -1, .destinationScene = -1, .stateLoadCounter = 0, .linkAge = LINK_AGE_CHILD, .destinationEntrance = -1},
+    #endif
 };
 
 void* vTableDiskAddrs[] = {&VTABLE_1_0, &VTABLE_1_1, NULL, &VTABLE_1_2};
@@ -64,7 +63,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, DDHookTable* hookTablePtr)
  
     dd.funcTablePtr = funcTablePtr;
     dd.hookTablePtr = hookTablePtr;    
-    
+
     // Check game version by comparing the address of the funcTablePtr.
     for (int i = NTSC_1_0; i <= NTSC_1_2; i++)
     {
@@ -75,7 +74,7 @@ void Disk_Init(ddFuncPointers* funcTablePtr, DDHookTable* hookTablePtr)
     // If no valid version detected, show error screen and hang.
     // Otherwise, load the vTable from disk.
     if (dd.gameVersion < 0)
-        ShowFullScreenGraphic(ERROR_VERSION_YAZ0, ERROR_VERSION_YAZ0_LEN, true);
+        ShowFullScreenGraphic(ERROR_VERSION_YAZ0, ERROR_VERSION_YAZ0_LEN);
     else
         dd.funcTablePtr->loadFromDisk(&dd.vtable, (s32)vTableDiskAddrs[dd.gameVersion], sizeof(VersionVTable));
 
@@ -88,17 +87,19 @@ void Disk_Init(ddFuncPointers* funcTablePtr, DDHookTable* hookTablePtr)
         ddMemcpy(sContext->unk_1358, SAVE_ID, 4);
     }
     else if (ddMemcmp(sContext->unk_1358, SAVE_ID, 4))      // Save from another disk.
-        ShowFullScreenGraphic(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN, true);
+        ShowFullScreenGraphic(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
 
     _isPrintfInit();
-    Functions_ReplaceAll(replFunctions, ARRAY_COUNT(replFunctions));
+    Functions_ReplaceAll(replFunctions, replFunctionsCount);
+
+    ddCache_Init(&dd.cache);
 
     is64Printf("64DD Ready!\n"); 
 }
 
 void Disk_Destroy()
 {
-    ShowFullScreenGraphic(PLEASERESET_YAZ0, PLEASERESET_YAZ0_LEN, true);
+    ShowFullScreenGraphic(PLEASERESET_YAZ0, PLEASERESET_YAZ0_LEN);
 }
 
 void Disk_GameState(struct GameState* state)
@@ -145,13 +146,14 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
 
 struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* sceneTable)
 {
-    for (int i = 0; i < ARRAY_COUNT(ddScenes); i++)
+    for (int i = 0; i < ddScenesCount; i++)
     {
         DDScene* scene = &ddScenes[i];
 
         if (scene->sceneId == sceneId)
         {
-            u8* addr = (u8*)ROOMS_START;
+            if (scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart != 0)
+                ddCache_LoadFile(&dd.cache, scene->entry.titleFile.vromStart, scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart, DDFILE_SCENE_PERMANENT);
 
             for (int j = 0; j < MAX_ROOMS; j++)
             {
@@ -160,8 +162,7 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
                 if (!entry->diskAddr)
                     break;
 
-                dd.funcTablePtr->loadFromDisk(addr, entry->diskAddr, entry->size);
-                addr += entry->size;
+                ddCache_LoadFile(&dd.cache, entry->diskAddr, entry->size, DDFILE_SCENE_PERMANENT);
             }
 
             return &scene->entry;
@@ -175,28 +176,24 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
 
 void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 roomNum)
 {
-    for (int i = 0; i < ARRAY_COUNT(ddScenes); i++)
+    for (int i = 0; i < ddScenesCount; i++)
     {
         DDScene* scene = &ddScenes[i];
 
         if (scene->sceneId == play->sceneId)
         {
-            u8* addr = (u8*)ROOMS_START;
-
             for (int j = 0; j < MAX_ROOMS; j++)
             {
                 DDRoom* entry = &scene->rooms[j];
 
                 if (j == roomNum)
                 {
-                    roomCtx->roomRequestAddr = addr;
+                    roomCtx->roomRequestAddr = ddCache_LoadFile(&dd.cache, entry->diskAddr, entry->size, DDFILE_SCENE_PERMANENT);
 
                     // We're done loading! 
                     dd.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);                                      
                     return;
                 }
-
-                addr += entry->size;
             }
         }
     } 
@@ -243,14 +240,14 @@ void Disk_SetMessageTables(struct MessageTableEntry** Japanese, struct MessageTa
 void Disk_LoadDungeonMap(struct PlayState* play)
 {
     InterfaceContext* interfaceCtx = &play->interfaceCtx;
-    Disk_Load_MusicSafe(interfaceCtx->mapSegment, (u32)DUNGEONMAPLEFTTEXTURE_BIN, DUNGEONMAPLEFTTEXTURE_BIN_LEN);
-    Disk_Load_MusicSafe(interfaceCtx->mapSegment + ALIGN16(MAP_48x85_TEX_SIZE), (u32)DUNGEONMAPRIGHTTEXTURE_BIN, DUNGEONMAPRIGHTTEXTURE_BIN_LEN);
+    ddCache_LoadFileTo(interfaceCtx->mapSegment, &dd.cache, (u32)DUNGEONMAPLEFTTEXTURE_BIN, DUNGEONMAPLEFTTEXTURE_BIN_LEN);
+    ddCache_LoadFileTo(interfaceCtx->mapSegment + ALIGN16(MAP_48x85_TEX_SIZE), &dd.cache, (u32)DUNGEONMAPRIGHTTEXTURE_BIN, DUNGEONMAPRIGHTTEXTURE_BIN_LEN);
 }
 
 s32 Disk_LoadMinimap(struct PlayState* play)
 {
     InterfaceContext* interfaceCtx = &play->interfaceCtx;
-    Disk_Load_MusicSafe(interfaceCtx->mapSegment, (u32)DUNGEONMINIMAP_BIN, DUNGEONMINIMAP_BIN_LEN);
+    ddCache_LoadFileTo(interfaceCtx->mapSegment, &dd.cache, (u32)DUNGEONMINIMAP_BIN, DUNGEONMINIMAP_BIN_LEN);
     return 1;
 }
 
@@ -258,8 +255,8 @@ s32 Disk_HandleEntranceTriggers(struct PlayState* play)
 {
     if (play->sceneId == SCENE_ZORAS_RIVER)
     {
-        Disk_Load_MusicSafe((void*)SEGMENT_STATIC_START, (u32)CUTSCENEZORARIVER_BIN, CUTSCENEZORARIVER_BIN_LEN);
-        play->csCtx.script = (void*)SEGMENT_STATIC_START;
+        void* cScene = ddCache_LoadFile(&dd.cache, (u32)CUTSCENEZORARIVER_BIN, CUTSCENEZORARIVER_BIN_LEN, DDFILE_REGULAR); 
+        play->csCtx.script = cScene;
         dd.funcTablePtr->saveContext->cutsceneTrigger = 2;
         dd.funcTablePtr->saveContext->showTitleCard = false;
         return 1;
@@ -396,7 +393,7 @@ void DoSaveStates(struct PlayState* play)
     Input* input = play->state.input;
     SaveContext* sc = dd.funcTablePtr->saveContext;
 
-    int saveSize =  0x785C8 + sizeof(DDSavedState) + sizeof(gSaveContext) + (RAM_START - (u32)&play) + 0x1610 + 0x100;
+    int saveSize =  0x785C8 + sizeof(DDSavedState) + sizeof(gSaveContext) + (RAM_START - (u32)&play) + 0x1610 + sizeof(DDCache) + DDCACHE_SIZE + 0x100;
     int diskPos = ROM_LENGTH - saveSize;
     ALIGN32(diskPos);
 
@@ -405,11 +402,11 @@ void DoSaveStates(struct PlayState* play)
     {  
         dd.vtable.sleepMsec(100);
         void* frameBuffer = ddGetCurFrameBuffer(); 
-        dd.vtable.clearFrameBuffer(frameBuffer);
+        ddClearFramebuffer(frameBuffer);
         PrintTextLineToFb(frameBuffer, SAVING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
         PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);
 
-        ddMemcpy(&dd.sState.magic, STATE_MAGIC, 16);
+        ddMemcpy(&dd.sState.magic, STATE_MAGIC, 8);
         dd.sState.destinationEntrance = sc->save.entranceIndex;
         dd.sState.linkAge = sc->save.linkAge;
         dd.sState.musicId = sc->seqId;
@@ -426,6 +423,17 @@ void DoSaveStates(struct PlayState* play)
 
         u32 plAddr = (u32)play;
         Disk_Write_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - (u32)&play) + 0x1610);
+        diskPos += (RAM_START - (u32)&play) + 0x1610; 
+        ALIGN32(diskPos);
+
+        Disk_Write_MusicSafe(&dd.cache, diskPos, sizeof(DDCache));
+        diskPos += sizeof(DDCache); 
+        ALIGN32(diskPos);       
+        
+        Disk_Write_MusicSafe(DDCACHE_START, diskPos, DDCACHE_SIZE);
+        diskPos += DDCACHE_SIZE; 
+        ALIGN32(diskPos);
+
         return;
     }
 
@@ -434,13 +442,13 @@ void DoSaveStates(struct PlayState* play)
     {
         dd.vtable.sleepMsec(100);
         void* frameBuffer = ddGetCurFrameBuffer();           
-        dd.vtable.clearFrameBuffer(frameBuffer);
+        ddClearFramebuffer(frameBuffer);
         PrintTextLineToFb(frameBuffer, CHECKING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
         PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);   
 
         Disk_Load_MusicSafe(&dd.sState, diskPos, sizeof(DDSavedState));
 
-        if (ddMemcmp(dd.sState.magic, STATE_MAGIC, 16))
+        if (ddMemcmp(dd.sState.magic, STATE_MAGIC, 8))
         {
             dd.vtable.sleepMsec(100);
             void* frameBuffer = ddGetCurFrameBuffer();           
@@ -454,7 +462,7 @@ void DoSaveStates(struct PlayState* play)
         }
 
         // If we're not in the destination area already, go there.
-        if (sc->save.entranceIndex != dd.sState.destinationEntrance)
+        if (true || sc->save.entranceIndex != dd.sState.destinationEntrance)
         {
             dd.vtable.audio_StopBgmAndFanfare(0);
             play->nextEntranceIndex = dd.sState.destinationEntrance;
@@ -465,7 +473,7 @@ void DoSaveStates(struct PlayState* play)
             play->envCtx.screenFillColor[0] = play->envCtx.screenFillColor[1] = play->envCtx.screenFillColor[2] = 0;
             play->envCtx.screenFillColor[3] = 255;
             play->envCtx.fillScreen = 1;
-            dd.sState.stateLoadCounter = 2;
+            dd.sState.stateLoadCounter = 5;
             sc->forcedSeqId = 0xFFFF;
         }
         else
@@ -482,7 +490,7 @@ void DoSaveStates(struct PlayState* play)
           
         dd.vtable.sleepMsec(100);
         void* frameBuffer = ddGetCurFrameBuffer();           
-        dd.vtable.clearFrameBuffer(frameBuffer);
+        ddClearFramebuffer(frameBuffer);
         PrintTextLineToFb(frameBuffer, LOADING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
         PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);           
 
@@ -495,11 +503,21 @@ void DoSaveStates(struct PlayState* play)
 
         u32 plAddr = (u32)play;
         Disk_Load_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - (u32)&play) + 0x1610);
+        diskPos += (RAM_START - (u32)&play) + 0x1610; 
+        ALIGN32(diskPos);
+
+        Disk_Load_MusicSafe(&dd.cache, diskPos, sizeof(DDCache));
+        diskPos += sizeof(DDCache); 
+        ALIGN32(diskPos);       
+        
+        Disk_Load_MusicSafe(DDCACHE_START, diskPos, DDCACHE_SIZE);
+        diskPos += DDCACHE_SIZE; 
+        ALIGN32(diskPos);        
 
         dd.funcTablePtr->osWritebackDCacheAll();
-        dd.funcTablePtr->osInvalICache((void*)0x80000000, 0x400000);       
-        dd.funcTablePtr->osInvalDCache((void*)0x80000000, 0x400000);  
-        
+        dd.funcTablePtr->osInvalICache((void*)0x80000000, 0x800000);       
+        dd.funcTablePtr->osInvalDCache((void*)0x80000000, 0x800000);         
+
         dd.vtable.audio_QueueSeqCmd(dd.sState.musicId);
         dd.sState.destinationScene = -1;
         return;

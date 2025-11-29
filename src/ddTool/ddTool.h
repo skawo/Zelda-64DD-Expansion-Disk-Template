@@ -2,6 +2,7 @@
 #define DDTOOL_H
 
 #include "../../include/ultra64.h"
+#include "../../include/gfx.h"
 
 #ifndef PREFIX
     #define PREFIX
@@ -22,6 +23,8 @@ void FN(ddMemfill)(void* dst, u8 byte, int n);
 u16 FN(ddGetSJisIndex)(u8 c);
 u32 FN(ddStrlen)(const char* str);
 void* FN(ddGetCurFrameBuffer)();
+void FN(ddClearFramebuffer)();
+void* FN(ddMemmove)(void* dest, void* src, int n);
 
 #define ddMemcpy FN(ddMemcpy)
 #define ddMemcmp FN(ddMemcmp)
@@ -30,5 +33,7 @@ void* FN(ddGetCurFrameBuffer)();
 #define ddGetSJisIndex FN(ddGetSJisIndex)
 #define ddStrlen FN(ddStrlen)
 #define ddGetCurFrameBuffer FN(ddGetCurFrameBuffer)
+#define ddClearFramebuffer FN(ddClearFramebuffer)
+#define ddMemmove FN(ddMemmove)
 
 #endif // DDTOOL_H

@@ -11,12 +11,13 @@
 #include "../include/controller.h"
 #include "../include/sfx.h"
 #include "../include/fault.h"
+#include "../include/libc64/os_malloc.h"
 
 typedef struct
 {
     void (*audioPlaySfxGeneral)(u16, Vec3f*, u8, f32*, f32*, s8*);
     void (*actorSpawn)(ActorContext*, PlayState*, s16, f32, f32, f32, s16, s16, s16, s16);
-    void (*bcopy)(u8, const void*, void*, int);
+    void (*bcopy)(const void*, void*, int);
     void (*fontLoadChar)(u16);
     f32* sFontWidths;
     s32 (*osEPiWriteIo)(OSPiHandle*, u32, u32);
@@ -52,6 +53,10 @@ typedef struct
     s32 (*ddUnkFunc6) ();
     void (*sysFreeze) ();
     volatile OSTime* ddStartOpTime;
+    void (*osMallocInit) (Arena* arena, void* start, s32 size);
+    void* (*osMalloc) (Arena* arena, u32 size);
+    void (*osFree) (Arena* arena, void* ptr);
+    void (*arenaImpl_GetSizes) (Arena* arena, u32* outMaxFree, u32* outFree, u32* outAlloc);
 } VersionVTable;
 
 #endif // VTABLES_H

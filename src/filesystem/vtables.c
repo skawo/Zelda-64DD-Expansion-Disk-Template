@@ -40,6 +40,10 @@ VersionVTable VTABLE_1_0 __attribute__((__aligned__(32))) =
     .ddUnkFunc6 = (void*)0x801C8844,
     .sysFreeze = (void*)0x800ACE60,
     .ddStartOpTime = (void*)0x801D9DC0,
+    .osMallocInit = (void*)0x800CDD90,
+    .osMalloc = (void*)0x800CE060,
+    .osFree = (void*)0x800CE2B4,
+    .arenaImpl_GetSizes = (void*)0x800CE688,
 };
 
 VersionVTable VTABLE_1_1 __attribute__((__aligned__(32))) =
@@ -82,6 +86,10 @@ VersionVTable VTABLE_1_1 __attribute__((__aligned__(32))) =
     .ddUnkFunc6 = (void*)0x801C89C4,
     .sysFreeze = (void*)0x800ACE60,
     .ddStartOpTime = (void*)0x801D9F60,
+    .osMallocInit = (void*)0x800CDF50,
+    .osMalloc = (void*)0x800CE220,
+    .osFree = (void*)0x800CE474,
+    .arenaImpl_GetSizes = (void*)0x800CE848,
 };
 
 VersionVTable VTABLE_1_2 __attribute__((__aligned__(32))) =
@@ -124,4 +132,8 @@ VersionVTable VTABLE_1_2 __attribute__((__aligned__(32))) =
     .ddUnkFunc6 = (void*)0x801C90A4,
     .sysFreeze = (void*)0x800AD430,
     .ddStartOpTime = (void*)0x801DA640,
+    .osMallocInit = (void*)0x800CE5D0,
+    .osMalloc = (void*)0x800CE8A0,
+    .osFree = (void*)0x800CEAF4,
+    .arenaImpl_GetSizes = (void*)0x800CEEC8,
 };

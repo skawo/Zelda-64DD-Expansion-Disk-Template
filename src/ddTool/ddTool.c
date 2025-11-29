@@ -14,6 +14,11 @@ void* ddGetCurFrameBuffer()
     return (void*)K0_TO_K1(*viReg);     
 }
 
+void ddClearFramebuffer(void* fbuf)
+{
+    ddMemfill(fbuf, 0, SCREEN_WIDTH * SCREEN_HEIGHT * 2);
+}
+
 u32 ddStrlen(const char* str) 
 {
     const char* ptr = str;
@@ -35,6 +40,28 @@ void ddMemcpy(void* dst, void* src, int n)
         p1++;
         p2++;            
     }    
+}
+
+void* ddMemmove(void* dest, void* src, int n)
+{
+    u8* d = (u8*)dest;
+    u8* s = (u8*)src;
+
+    if (d < s)
+    {
+        while (n--)
+            *d++ = *s++;
+    }
+    else if (d > s)
+    {
+        d += n;
+        s += n;
+
+        while (n--)
+            *--d = *--s;
+    }
+
+    return dest;
 }
 
 int ddMemcmp(void* s1, void* s2, int n)

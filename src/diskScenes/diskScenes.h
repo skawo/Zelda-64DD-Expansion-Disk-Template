@@ -1,4 +1,10 @@
-#include "diskCode.h"
+#ifndef DISKSCENES_H
+#define DISKSCENES_H
+
+#include "../../include/n64dd.h"
+#include "../../include/game.h"
+#include "../ddTool/ddTool.h"
+#include "../filesystem/filesystem.h"
 
 typedef struct DDRoom
 {
@@ -51,3 +57,8 @@ typedef struct DDScene
     DDScene ddScenes[] = {   \
         __VA_ARGS__          \
     }
+
+extern DDScene ddScenes[];
+extern const s32 ddScenesCount;
+
+#endif //DISKSCENES_H

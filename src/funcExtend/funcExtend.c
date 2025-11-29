@@ -1,4 +1,4 @@
-#include "diskCode.h"
+#include "funcExtend.h"
 
 // These perform their respective action without killing the audio engine.
 void Disk_Load_MusicSafe(void* dest, s32 offset, s32 size)
@@ -172,15 +172,13 @@ void is64Printf(const char* fmt, ...)
     #endif
 }
 
-void ShowFullScreenGraphic(void* graphic, u32 graphicLen, bool halt)
+void ShowFullScreenGraphic(void* graphic, u32 graphicLen)
 {
-    u8* comprBuf = (u8*)SEGMENT_STATIC_START;
-    Disk_Load_MusicSafe(comprBuf, (u32)graphic, graphicLen);
+    u8* comprBuf = (u8*)0x80700000;
+    dd.funcTablePtr->loadFromDisk(comprBuf, (u32)graphic, graphicLen);
     void* frameBuffer = ddGetCurFrameBuffer(); 
     ddYaz0_Decompress(comprBuf, frameBuffer, graphicLen);
-
-    if (halt)
-        while (true);
+    while (true);
 }
 
 void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool fontStyle)

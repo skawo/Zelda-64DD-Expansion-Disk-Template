@@ -16,9 +16,12 @@
 #include "../../include/map.h"
 
 #include "../ddTool/ddTool.h"
-
+#include "../diskCache/diskCache.h"
 #include "../filesystem/vtables.h"
 #include "../filesystem/filesystem.h"
+#include "../funcExtend/funcExtend.h"
+#include "../funcRepl/funcRepl.h"
+#include "../diskScenes/diskScenes.h"
 
 //#define DVDLOGO
 #define SIGN_CLOCK
@@ -127,7 +130,7 @@ typedef struct DDHookTable
 #ifdef SAVESTATES
     typedef struct DDSavedState
     {
-        char magic[16];
+        char magic[8];
         int destinationScene;
         int musicId;
         int stateLoadCounter;
@@ -135,7 +138,7 @@ typedef struct DDHookTable
         int destinationEntrance;
     } DDSavedState;
 
-    #define STATE_MAGIC    "N64DD_SAVE_STATE"
+    #define STATE_MAGIC    "SV_STATE"
     #define CHECKING_MSG   "Checking saved state..."
     #define NO_SAVE_MSG    "No saved state found."
     #define SAVING_MSG     "Saving state to disk."
@@ -151,14 +154,12 @@ typedef struct DDState
     s8 gameVersion;
     OSPiHandle* sISVHandle;
     VersionVTable vtable;
-
+    DDCache cache;
     #ifdef SAVESTATES
         DDSavedState sState;
-    #endif
-} DDState;
+    #endif       
 
-DDHookTable hookTable;
-DDState dd;
+} DDState;
 
 void Disk_Init(ddFuncPointers* funcTablePtr, DDHookTable* hookTablePtr);
 void Disk_Destroy();
@@ -176,19 +177,11 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
 void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 roomNum);
 
 void DrawRect(Gfx** gfxp, u8 r, u8 g, u8 b, u32 PosX, u32 PosY, u32 Sizex, u32 SizeY);
-void ShowFullScreenGraphic(void* graphic, u32 graphicLen, bool halt);
 void Draw64DDDVDLogo(struct PlayState* play);
 void SpawnArwing(struct PlayState* play);
-void _isPrintfInit();
-void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count);
-void is64Printf(const char* fmt, ...);
 void DoClockDisplayOnLinkHouseSign(struct PlayState* play);
 void RestoreMapSelect(struct PlayState* play);
 void DoSaveStates(struct PlayState* play);
-void Disk_Load_MusicSafe(void* dest, s32 offset, s32 size);
-void Disk_Write(void* data, u32 diskAddr, u32 len);
-void Disk_Write_MusicSafe(void* data, u32 diskAddr, u32 len);
-void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool fontStyle);
 
 extern void* __Disk_Init_K1;
 extern void* __entry;
@@ -198,8 +191,6 @@ extern VersionVTable* VTABLE_1_0;
 extern VersionVTable* VTABLE_1_1;
 extern VersionVTable* VTABLE_1_2;
 
-#define SEGMENT_STATIC_START 0x80700000
-#define ROOMS_START 0x80600000
 #define RAM_START (u32)&__entry
 #define RAM_LENGTH (u32)&RAM_LENGTH
 #define ROM_LENGTH (u32)&ROM_LENGTH
