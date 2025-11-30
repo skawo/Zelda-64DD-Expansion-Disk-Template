@@ -21,12 +21,12 @@ MEMORY {
 OFFSET = 0;
 
 SECTIONS {
-    .diskHeader : ALIGN(1) 
+    .diskHeader : AT(OFFSET) ALIGN(1) 
     {
         KEEP(*(.diskHeader))
     } > HEADER   
 
-    OFFSET = BOOT_OFFS;
+    OFFSET += BOOT_OFFS;
 
     .boot : AT(OFFSET) ALIGN(1) 
     {
@@ -66,21 +66,18 @@ SECTIONS {
         *(.fini)
     } > RAM
     
-    . = ALIGN(32);
     .rodata :
     {
         *(.rodata*)
         *(.eh_frame*)
     } > RAM
 
-    . = ALIGN(32);
     .data :
     {
         *(.data*)
         *(.sdata*)
     } > RAM
 
-    . = ALIGN(32);
     .bss :
     {
         *(COMMON)

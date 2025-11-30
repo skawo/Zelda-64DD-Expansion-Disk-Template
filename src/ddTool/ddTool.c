@@ -25,7 +25,7 @@ u32 ddStrlen(const char* str)
     return ptr - str;
 }
 
-void ddMemcpy(void* dst, void* src, int n)
+void ddMemcpy(void* dst, const void* src, int n)
 {
     u8* p1 = (u8*)src;
     u8* p2 = (u8*)dst;
@@ -38,7 +38,7 @@ void ddMemcpy(void* dst, void* src, int n)
     }    
 }
 
-void* ddMemmove(void* dest, void* src, int n)
+void* ddMemmove(void* dest, const void* src, int n)
 {
     u8* d = (u8*)dest;
     u8* s = (u8*)src;
@@ -60,7 +60,7 @@ void* ddMemmove(void* dest, void* src, int n)
     return dest;
 }
 
-int ddMemcmp(void* s1, void* s2, int n)
+int ddMemcmp(const void* s1, const void* s2, int n)
 {
     u8* p1 = (u8*)s1;
     u8* p2 = (u8*)s2;
@@ -82,7 +82,7 @@ void ddMemfill(void* dst, u8 byte, int n)
         p[i] = byte;
 }
 
-void ddYaz0_Decompress(u8* src, u8* dst, int compr_size)
+void ddYaz0_Decompress(const u8* src, u8* dst, int compr_size)
 {
     Yaz0Header* header = (Yaz0Header*)src;
     u32 bitIdx = 0;
@@ -129,7 +129,8 @@ void ddYaz0_Decompress(u8* src, u8* dst, int compr_size)
 
             do
             {
-                *dst++ = *(backPtr++ - 1);
+*dst++ = backPtr[-1];
+backPtr++;
                 chunkSize--;
             }
             while (chunkSize != 0);

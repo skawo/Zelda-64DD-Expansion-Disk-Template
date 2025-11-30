@@ -196,7 +196,7 @@ void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool font
 {
     int msgGfxOffs = 0;
     int msgWidth = 0;
-    static u8 msgGfxBuf[0x80];
+    u8 msgGfxBuf[0x80];
 
     if (xPos == -1)
     {

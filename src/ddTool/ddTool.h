@@ -16,15 +16,15 @@
 
 #define FN(name) CAT(PREFIX, name)
 
-void FN(ddMemcpy)(void* dst, void* src, int n);
-void FN(ddYaz0_Decompress)(u8* src, u8* dst, int compr_size);
-int FN(ddMemcmp)(void* s1, void* s2, int n);
+void FN(ddMemcpy)(void* dst, const void* src, int n);
+void FN(ddYaz0_Decompress)(const u8* src, u8* dst, int compr_size);
+int FN(ddMemcmp)(const void* s1, const void* s2, int n);
 void FN(ddMemfill)(void* dst, u8 byte, int n);
 u16 FN(ddGetSJisIndex)(u8 c);
 u32 FN(ddStrlen)(const char* str);
 void* FN(ddGetCurFrameBuffer)();
 void FN(ddClearFramebuffer)();
-void* FN(ddMemmove)(void* dest, void* src, int n);
+void* FN(ddMemmove)(void* dest, const void* src, int n);
 
 #define ddMemcpy FN(ddMemcpy)
 #define ddMemcmp FN(ddMemcmp)

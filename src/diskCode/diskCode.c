@@ -1,7 +1,7 @@
 #include "diskCode.h"
 #include "static_vtables.c"
 
-DDHookTable hookTable = 
+DDHookTable hookTable =   
 {
     .diskInit                   = (DiskInitFunc)&__Disk_Init_K1,
     .diskDestroy                = Disk_Destroy,
@@ -41,7 +41,7 @@ DDHookTable hookTable =
     .cutsceneSetScript          = NULL,
 };
 
-DDState dd = 
+DDState dd =  
 {
     .play                     = (PlayState*)NULL,
     .funcTablePtr             = (ddFuncPointers*)NULL,
@@ -50,7 +50,13 @@ DDState dd =
     .vtable                   = {},
 
     #ifdef SAVESTATES
-    .sState                   = { .magic = STATE_MAGIC, .musicId = -1, .destinationScene = -1, .stateLoadCounter = 0, .linkAge = LINK_AGE_CHILD, .destinationEntrance = -1},
+    .sState                   = { .magic = STATE_MAGIC, 
+                                  .musicId = -1, 
+                                  .destinationScene = -1, 
+                                  .stateLoadCounter = 0, 
+                                  .linkAge = LINK_AGE_CHILD, 
+                                  .destinationEntrance = -1
+                                },
     #endif
 };
 
