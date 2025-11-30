@@ -41,7 +41,7 @@ DDHookTable hookTable =
     .cutsceneSetScript          = NULL,
 };
 
-DDState dd =  
+DDState dd =   
 {
     .play                     = (PlayState*)NULL,
     .funcTablePtr             = (ddFuncPointers*)NULL,
@@ -94,15 +94,10 @@ void Disk_Init(ddFuncPointers* funcTablePtr, DDHookTable* hookTablePtr)
     }
     else if (ddMemcmp(sContext->unk_1358, SAVE_ID, 4))      // Save from another disk.
         ShowFullScreenGraphic(ERROR_SAVE_YAZ0, ERROR_SAVE_YAZ0_LEN);
-
+    
     _isPrintfInit();
-
-    is64Printf("dd at %x!\n", &dd); 
-
-    Functions_ReplaceAll(replFunctions, replFunctionsCount);
-
     ddCache_Init(&dd.cache);
-
+    Functions_ReplaceAll(replFunctions, replFunctionsCount);
     is64Printf("64DD Ready!\n"); 
 }
 
@@ -495,7 +490,7 @@ void DoSaveStates(struct PlayState* play)
 
         if (dd.sState.stateLoadCounter != 0)
             return;
-          
+
         void* frameBuffer = getCurLatchedFbuf();        
         dd.vtable.clearFrameBuffer(frameBuffer);
         PrintTextLineToFb(frameBuffer, LOADING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);

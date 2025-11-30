@@ -66,19 +66,19 @@ SECTIONS {
         *(.fini)
     } > RAM
     
-    .rodata :
+    .rodata ALIGN(32) :
     {
         *(.rodata*)
         *(.eh_frame*)
     } > RAM
 
-    .data :
+    .data ALIGN(32) :
     {
         *(.data*)
         *(.sdata*)
     } > RAM
 
-    .bss :
+    .bss ALIGN(32) :
     {
         *(COMMON)
         *(.bss*)
