@@ -75,6 +75,10 @@ static DDFile* ddCache_FindFile(DDCache* cache, void* ptr)
 void ddCache_FreeFile(DDCache* cache, u32 fileDiskStart)
 {
     DDFile* f = ddCache_FindFile(cache, (void*)fileDiskStart);
+
+    if (!f)
+        return;
+
     dd.vtable.osFree(&cache->cacheArena, f->vram);
     ddCache_InvalidateFile(cache, f);
 }
@@ -84,19 +88,22 @@ void ddCache_ClearAll(DDCache* cache)
     for (int i = 0; i < DDCACHE_MAXFILES; ++i)
     {
         DDFile* f = &cache->files[i];
-        dd.vtable.osFree(&cache->cacheArena, f->vram);
-        ddCache_InvalidateFile(cache, f);
+
+        if (f->diskOffs != DDFILE_INVALID)
+        {
+            dd.vtable.osFree(&cache->cacheArena, f->vram);
+            ddCache_InvalidateFile(cache, f);
+        }
     }    
 }
 
 bool ddCache_CanFileBeUnloaded(DDFile* file)
 {
-    if (file->diskOffs == DDFILE_INVALID)
+    if (!file ||
+        (file->diskOffs == DDFILE_INVALID) ||
+        (file->type == DDFILE_PERMANENT) ||
+        (dd.play && file->type == DDFILE_SCENE_PERMANENT && file->sceneIDWhenLoaded == dd.play->sceneId))
         return false;
-    else if (file->type == DDFILE_PERMANENT)
-        return false;
-    else if (dd.play && file->type == DDFILE_SCENE_PERMANENT && file->sceneIDWhenLoaded == dd.play->sceneId)
-        return false; 
 
     return true;
 }
