@@ -399,7 +399,7 @@ void DoSaveStates(struct PlayState* play)
     Input* input = play->state.input;
     SaveContext* sc = dd.funcTablePtr->saveContext;
 
-    int saveSize =  0x785C8 + sizeof(DDSavedState) + sizeof(gSaveContext) + (RAM_START - (u32)&play) + 0x1610 + sizeof(DDCache) + DDCACHE_SIZE + 0x100;
+    int saveSize =  0x785C8 + sizeof(DDSavedState) + sizeof(gSaveContext) + (RAM_START - (u32)play) + 0x1610 + sizeof(DDCache) + DDCACHE_SIZE + 0x100;
     int diskPos = ROM_LENGTH - saveSize;
     ALIGN32(diskPos);
 
@@ -416,25 +416,25 @@ void DoSaveStates(struct PlayState* play)
         dd.sState.linkAge = sc->save.linkAge;
         dd.sState.musicId = sc->seqId;
         dd.sState.destinationScene = play->sceneId;
-        dd.sState.stateLoadCounter = 0;        
-
+        dd.sState.stateLoadCounter = 0;    
+        
         Disk_Write_MusicSafe(&dd.sState, diskPos, sizeof(DDSavedState));
         diskPos += sizeof(DDSavedState);
         ALIGN32(diskPos);
 
         Disk_Write_MusicSafe(sc, diskPos, sizeof(gSaveContext));
         diskPos += sizeof(gSaveContext);     
-        ALIGN32(diskPos);       
-
+        ALIGN32(diskPos);    
+        
         u32 plAddr = (u32)play;
-        Disk_Write_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - (u32)&play) + 0x1610);
-        diskPos += (RAM_START - (u32)&play) + 0x1610; 
+        Disk_Write_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - plAddr) + 0x1610);
+        diskPos += (RAM_START - plAddr) + 0x1610; 
         ALIGN32(diskPos);
 
         Disk_Write_MusicSafe(&dd.cache, diskPos, sizeof(DDCache));
         diskPos += sizeof(DDCache); 
-        ALIGN32(diskPos);       
-        
+        ALIGN32(diskPos);      
+
         Disk_Write_MusicSafe(DDCACHE_START, diskPos, DDCACHE_SIZE);
         diskPos += DDCACHE_SIZE; 
         ALIGN32(diskPos);
@@ -504,8 +504,8 @@ void DoSaveStates(struct PlayState* play)
         ALIGN32(diskPos);       
 
         u32 plAddr = (u32)play;
-        Disk_Load_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - (u32)&play) + 0x1610);
-        diskPos += (RAM_START - (u32)&play) + 0x1610; 
+        Disk_Load_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - plAddr) + 0x1610);
+        diskPos += (RAM_START - plAddr) + 0x1610; 
         ALIGN32(diskPos);
 
         Disk_Load_MusicSafe(&dd.cache, diskPos, sizeof(DDCache));
