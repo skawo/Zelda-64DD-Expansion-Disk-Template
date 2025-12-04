@@ -154,7 +154,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
 
         is64Printf("Not enough space for file %x, need %x, free=%x/%x\n", diskOffs, alignedLen, outFree, arenaSize);
 
-        // Try to find a single existing cached file that is >= alignedLen (prefer oldest = smallest timestamp)
+        // Try to find the oldest single existing cached file that is >= alignedLen
         DDFile* candidate = NULL;
         for (int i = 0; i < DDCACHE_MAXFILES; i++)
         {
