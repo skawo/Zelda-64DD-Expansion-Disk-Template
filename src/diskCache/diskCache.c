@@ -1,10 +1,6 @@
 #include "diskCache.h"
 #include "../diskCode/diskCode.h"
 
-#include <stdint.h>
-#include <assert.h>
-#include <stdbool.h>
-
 void ddCache_Init(DDCache* cache)
 {
     is64Printf("Initing cache.\n");
