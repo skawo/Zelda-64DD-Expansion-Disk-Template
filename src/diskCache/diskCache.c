@@ -79,7 +79,7 @@ void ddCache_FreeFile(DDCache* cache, u32 diskOffs)
     ddCache_InvalidateFile(cache, f);
 }
 
-void ddCache_ClearAll(DDCache* cache)
+void ddCache_FreeAll(DDCache* cache)
 {
     for (int i = 0; i < DDCACHE_MAXFILES; ++i)
     {

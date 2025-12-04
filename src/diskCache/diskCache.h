@@ -36,7 +36,7 @@ typedef struct DDCache
 void ddCache_Init(DDCache* cache);
 static bool ddCache_AddFile(DDCache* cache, u32 diskOffs, void* addr, int len, u8 type);
 void ddCache_FreeFile(DDCache* cache, u32 diskOffs);
-void ddCache_ClearAll(DDCache* cache);
+void ddCache_FreeAll(DDCache* cache);
 static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type);
 void* ddCache_LoadFile(DDCache* cache, u32 offset, u32 len, u8 type);
 void* ddCache_LoadFileTo(void* dest, DDCache* cache, u32 offset, u32 len);
