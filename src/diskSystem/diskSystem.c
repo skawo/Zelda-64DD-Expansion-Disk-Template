@@ -27,7 +27,7 @@
 #define LEO_DISK_TYPE_6 6
 
 #define DISK_TYPE LEO_DISK_TYPE_4
-#define IPL_LBA_LOAD_AMOUNT 0x000A
+#define IPL_LBA_LOAD_AMOUNT 0x0002  // Should be the result of (((u32)ERROR_IPL_YAZ0 + ERROR_IPL_YAZ0_LEN - 0x738C0) / 0x4D08) + 1
 
 #if defined(DISKRELEASE_DEV) || !defined(DISKFORMAT_NDD)
     #define DISK_REGION MAGIC_DEV

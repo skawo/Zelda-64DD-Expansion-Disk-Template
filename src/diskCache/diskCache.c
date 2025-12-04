@@ -102,7 +102,7 @@ static void ddCache_PrintoutNodes(DDCache* cache)
 
     while (curNode)
     {
-        is64Printf("node %X, %X, %s\n", curNode, curNode->size, curNode->isFree ? "Free" : "Not Free");
+        is64Printf("Node: %X, Size: %X, Status: %s\n", curNode, curNode->size, curNode->isFree ? "Free" : "Not Free");
         curNode = curNode->next;
     }
 
@@ -136,8 +136,10 @@ void ddCache_Defragment(DDCache* cache)
             u32 totalSize = sizeof(ArenaNode) + node->size;
             void* nodeAlloc = NodeData(node);
 
+            // If the next free block is now where it should logically be if the files were contiguous...
             if ((u8*)node != writePtr)
             {
+                // Relocate DD file
                 for (int i = 0; i < DDCACHE_MAXFILES; i++)
                 {
                     DDFile* f = &cache->files[i];
@@ -155,6 +157,7 @@ void ddCache_Defragment(DDCache* cache)
                 ddMemmove(writePtr, node, totalSize);
             }
 
+            // Relocate the header
             node = (ArenaNode*)writePtr;
             node->prev = prevNode;
             node->next = NULL;
@@ -172,6 +175,7 @@ void ddCache_Defragment(DDCache* cache)
         node = next;
     }
 
+    // Create new empty header at the end
     ArenaNode* freeNode = NULL;
 
     u8* endOfArena = (u8*)arena->start;
@@ -216,7 +220,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
 {
     int alignedLen = ALIGN16(len);
 
-    while(true)
+    while (true)
     {
         u32 outMaxFree, outFree, outAlloc;
         u32 arenaSize = cache->cacheArena.size;
@@ -245,7 +249,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
                 }
                 else
                 {
-                    is64Printf("Ran out of file slots when allocating %X\n", diskOffs);
+                    is64Printf("Ran out of file slots when allocating %X, force-freeing a file.\n", diskOffs);
                     dd.vtable.osFree(&cache->cacheArena, alloc);
                     forceFreeFileSlot = true;
                     // Will evict file after this.
@@ -257,8 +261,8 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
                 forceFreeFileSlot = true;
             }
         }
-
-        is64Printf("Not enough space for file %X, need %X, free=%X/%X\n", diskOffs, alignedLen, outFree, arenaSize);
+        else
+            is64Printf("Not enough space for file %X, need %X, free=%X/%X\n", diskOffs, alignedLen, outFree, arenaSize);
 
         // Try to find the oldest single existing cached file that is >= alignedLen
         DDFile* candidate = NULL;
