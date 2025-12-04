@@ -8,7 +8,7 @@ void ddCache_Init(DDCache* cache)
     dd.vtable.osMallocInit(&cache->cacheArena, DDCACHE_START, (int)(DDCACHE_END - DDCACHE_START));
     
     if (cache->cacheArena.head)
-        is64Printf("Free: %x\n", cache->cacheArena.head->size);
+        is64Printf("Free: %X\n", cache->cacheArena.head->size);
     
     for (int i = 0; i < DDCACHE_MAXFILES; i++)
     {
@@ -81,7 +81,7 @@ void ddCache_FreeFile(DDCache* cache, u32 diskOffs)
 
 void ddCache_FreeAll(DDCache* cache)
 {
-    for (int i = 0; i < DDCACHE_MAXFILES; ++i)
+    for (int i = 0; i < DDCACHE_MAXFILES; i++)
     {
         DDFile* f = &cache->files[i];
 
@@ -91,6 +91,114 @@ void ddCache_FreeAll(DDCache* cache)
             ddCache_InvalidateFile(cache, f);
         }
     }    
+}
+
+static void ddCache_PrintoutNodes(DDCache* cache)
+{
+    #ifdef DEBUGTOOLS
+    is64Printf("\n======CACHE STATE======\n");
+
+    ArenaNode* curNode = cache->cacheArena.head;
+
+    while (curNode)
+    {
+        is64Printf("node %X, %X, %s\n", curNode, curNode->size, curNode->isFree ? "Free" : "Not Free");
+        curNode = curNode->next;
+    }
+
+    is64Printf("==========================\n");  
+    #endif 
+}
+
+#define NODE_MAGIC 0x7373
+
+void ddCache_Defragment(DDCache* cache)
+{
+    ddCache_PrintoutNodes(cache);
+
+    is64Printf("\nDefragmenting...\n");
+
+    Arena* arena = &cache->cacheArena;
+
+    ArenaNode* node = arena->head;
+    ArenaNode* newHead = NULL;
+    ArenaNode* prevNode = NULL;
+
+    u8* writePtr = (u8*)arena->start;
+
+    // Make all the blocks contiguous
+    while (node) 
+    {
+        ArenaNode* next = node->next;
+
+        if (!node->isFree) 
+        {
+            u32 totalSize = sizeof(ArenaNode) + node->size;
+            void* nodeAlloc = NodeData(node);
+
+            if ((u8*)node != writePtr)
+            {
+                for (int i = 0; i < DDCACHE_MAXFILES; i++)
+                {
+                    DDFile* f = &cache->files[i];
+
+                    if (f->vram == nodeAlloc)
+                    {
+                        void* newAlloc = NodeData(writePtr);
+                        is64Printf("Re-registered file %X to %X\n", f->diskOffs, newAlloc);
+                        f->vram = newAlloc;
+                        break;
+                    }
+                }
+
+                is64Printf("Moving node %X to %X\n", node, writePtr);
+                ddMemmove(writePtr, node, totalSize);
+            }
+
+            node = (ArenaNode*)writePtr;
+            node->prev = prevNode;
+            node->next = NULL;
+
+            if (prevNode)
+                prevNode->next = node;
+
+            if (!newHead)
+                newHead = node;
+
+            prevNode = node;
+            writePtr += totalSize;
+        }
+
+        node = next;
+    }
+
+    ArenaNode* freeNode = NULL;
+
+    u8* endOfArena = (u8*)arena->start;
+    endOfArena += arena->size;
+
+    u32 remaining = endOfArena - writePtr;
+
+    if (remaining > sizeof(ArenaNode)) 
+    {
+        freeNode = (ArenaNode*)writePtr;
+
+        freeNode->magic = NODE_MAGIC;
+        freeNode->isFree = true;
+        freeNode->size = remaining - sizeof(ArenaNode);
+        freeNode->prev = prevNode;
+        freeNode->next = NULL;
+
+        if (prevNode)
+            prevNode->next = freeNode;
+    }
+
+    arena->head = newHead ? newHead : freeNode;
+
+    if (arena->head)
+        arena->head->prev = NULL;
+
+    ddCache_PrintoutNodes(cache);
 }
 
 static bool ddCache_CanFileBeUnloaded(DDFile* file)
@@ -111,21 +219,20 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
     while(true)
     {
         u32 outMaxFree, outFree, outAlloc;
-
+        u32 arenaSize = cache->cacheArena.size;
         dd.vtable.arenaImpl_GetSizes(&cache->cacheArena, &outMaxFree, &outFree, &outAlloc);
 
-        u32 arenaSize = outFree + outAlloc;
         bool forceFreeFileSlot = false;
 
         if ((u32)alignedLen > arenaSize) 
         {
-            is64Printf("File too large: req=%x arena=%x\n", alignedLen, arenaSize);
+            is64Printf("File too large: req=%X arena=%X\n", alignedLen, arenaSize);
             return NULL;
         }
 
         if ((u32)alignedLen <= outFree)
         {
-            is64Printf("Allocing file %x, need %x, free=%x/%x\n", diskOffs, alignedLen, outFree, arenaSize);
+            is64Printf("Allocing file %X, need %X, free=%X/%X\n", diskOffs, alignedLen, outFree, arenaSize);
 
             void* alloc = dd.vtable.osMalloc(&cache->cacheArena, alignedLen);
 
@@ -133,12 +240,12 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
             {
                 if (ddCache_AddFile(cache, diskOffs, alloc, alignedLen, type))
                 {
-                    is64Printf("Registered file %x @ %x\n", diskOffs, alloc);
+                    is64Printf("Registered file %X @ %X\n", diskOffs, alloc);
                     return alloc;
                 }
                 else
                 {
-                    is64Printf("Ran out of file slots when allocating %x\n", diskOffs);
+                    is64Printf("Ran out of file slots when allocating %X\n", diskOffs);
                     dd.vtable.osFree(&cache->cacheArena, alloc);
                     forceFreeFileSlot = true;
                     // Will evict file after this.
@@ -146,11 +253,12 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
             }
             else
             {
-                is64Printf("osMalloc failed.\n");
+                is64Printf("osMalloc failed due to fragmentation, force-freeing a file.\n");
+                forceFreeFileSlot = true;
             }
         }
 
-        is64Printf("Not enough space for file %x, need %x, free=%x/%x\n", diskOffs, alignedLen, outFree, arenaSize);
+        is64Printf("Not enough space for file %X, need %X, free=%X/%X\n", diskOffs, alignedLen, outFree, arenaSize);
 
         // Try to find the oldest single existing cached file that is >= alignedLen
         DDFile* candidate = NULL;
@@ -175,7 +283,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
 
         if (candidate)
         {
-            is64Printf("Freeing file %x for file %x\n", candidate->diskOffs, diskOffs);
+            is64Printf("Freeing file %X for file %X\n", candidate->diskOffs, diskOffs);
             dd.vtable.osFree(&cache->cacheArena, candidate->vram);
             ddCache_InvalidateFile(cache, candidate);
             // loop to try allocation again
@@ -207,7 +315,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
                 if (!oldestFile)
                     break;
 
-                is64Printf("Freeing oldest file %x for file %x\n", oldestFile->diskOffs, diskOffs);
+                is64Printf("Freeing oldest file %X for file %X\n", oldestFile->diskOffs, diskOffs);
 
                 void* startPtr = oldestFile->vram;
                 u32 lenFreed = oldestFile->len;
@@ -221,7 +329,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
 
             if (!freed && freeAfter < (u32)alignedLen)
             {
-                is64Printf("Unable to allocate %x bytes\n", alignedLen);
+                is64Printf("Unable to allocate %X bytes\n", alignedLen);
                 return NULL;
             }
 
@@ -240,23 +348,23 @@ void* ddCache_LoadFile(DDCache* cache, u32 offset, u32 len, u8 type)
         {
             checkedFile->timeStamp = dd.funcTablePtr->osGetTime();
             checkedFile->sceneIDWhenLoaded = dd.play->sceneId; 
-            is64Printf("Found file at %x\n", checkedFile->vram);
+            is64Printf("Found file at %X\n", checkedFile->vram);
 
             return checkedFile->vram;
         }
     }
 
     void* alloc = ddCache_AllocFile(cache, offset, len, type);
-    is64Printf("Allocated file at %x\n", alloc);
+    is64Printf("Allocated file at %X\n", alloc);
 
     if (alloc != NULL)
     {
-        Disk_Load_MusicSafe(alloc, offset, len);
+        Disk_Load(alloc, offset, len);
         return alloc;
     }
     else
     {
-        is64Printf("Could not alloc file %x\n", offset);
+        is64Printf("Could not alloc file %X\n", offset);
         return NULL;
     }
 }

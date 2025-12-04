@@ -1,6 +1,7 @@
 #ifndef DDCACHE_H
 #define DDCACHE_H
 
+#include "../common.h"
 #include "../include/n64dd.h"
 #include "../include/game.h"
 #include "../include/libc64/os_malloc.h"
@@ -16,6 +17,8 @@
 #define DDFILE_REGULAR 0
 #define DDFILE_PERMANENT 1
 #define DDFILE_SCENE_PERMANENT 2
+
+#define NodeData(n) ((void*)((u8*)(n) + sizeof(ArenaNode)))
 
 typedef struct DDFile
 {
@@ -40,5 +43,6 @@ void ddCache_FreeAll(DDCache* cache);
 static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type);
 void* ddCache_LoadFile(DDCache* cache, u32 offset, u32 len, u8 type);
 void* ddCache_LoadFileTo(void* dest, DDCache* cache, u32 offset, u32 len);
+void ddCache_Defragment(DDCache* cache);
 
 #endif // DDCACHE_H

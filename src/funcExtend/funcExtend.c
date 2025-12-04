@@ -1,16 +1,14 @@
 #include "funcExtend.h"
 
 // These perform their respective action without killing the audio engine.
-void Disk_Load_MusicSafe(void* dest, s32 offset, s32 size)
+void Disk_Load(void* dest, s32 offset, s32 size)
 {
-    *dd.vtable.haltMusicForDiskDMA = 1;
-    dd.funcTablePtr->loadFromDisk(dest, offset, size); 
-}
+    DrawDiskLoadIcon();
 
-void Disk_Write_MusicSafe(void* data, u32 diskAddr, u32 len)
-{
-    *dd.vtable.haltMusicForDiskDMA = 1;
-    Disk_Write(data, diskAddr, len);
+    if (dd.vtable.haltMusicForDiskDMA)
+        *dd.vtable.haltMusicForDiskDMA = 1;
+
+    dd.funcTablePtr->loadFromDisk(dest, offset, size); 
 }
 
 // Write to disk at specified byte address.
@@ -18,6 +16,9 @@ void Disk_Write_MusicSafe(void* data, u32 diskAddr, u32 len)
 // DISK_TYPE governs where data can be written to the disk.
 void Disk_Write(void* data, u32 diskAddr, u32 len)
 {
+    DrawDiskLoadIcon();
+    *dd.vtable.haltMusicForDiskDMA = 1;    
+
     s32 lba_start, offset_start;
     s32 lba_end, offset_end;
 
@@ -160,17 +161,17 @@ void* _is_proutSyncPrintf(void* arg, const char* str, unsigned int count)
     #endif
 }
 
+#ifdef DEBUGTOOLS
 void is64Printf(const char* fmt, ...) 
 {
-    #ifdef DEBUGTOOLS
         va_list args;
         va_start(args, fmt);
 
         dd.funcTablePtr->printf(_is_proutSyncPrintf, NULL, fmt, args);
 
         va_end(args);
-    #endif
 }
+#endif
 
 void* getCurLatchedFbuf()
 {
@@ -186,10 +187,18 @@ void* getCurLatchedFbuf()
 void ShowFullScreenGraphic(void* graphic, u32 graphicLen)
 {
     u8* comprBuf = (u8*)0x80700000;
-    dd.funcTablePtr->loadFromDisk(comprBuf, (u32)graphic, graphicLen);
+    Disk_Load(comprBuf, (u32)graphic, graphicLen);
     void* frameBuffer = ddGetCurFrameBuffer(); 
     ddYaz0_Decompress(comprBuf, frameBuffer, graphicLen);
     while (true);
+}
+
+u8 diskAccessIcon[DISK_ACCESS_ICON_X * DISK_ACCESS_ICON_Y * 2];
+
+void DrawDiskLoadIcon()
+{
+    void* fBuf = ddGetCurFrameBuffer();
+    ddDrawRGBA16ToFramebuffer(diskAccessIcon, DISK_ACCESS_ICON_XPOS, DISK_ACCESS_ICON_YPOS, DISK_ACCESS_ICON_X, DISK_ACCESS_ICON_Y, 11, fBuf, SCREEN_WIDTH);
 }
 
 void PrintTextLineToFb(u8* frameBuffer, char* msg, int xPos, int yPos, bool fontStyle)

@@ -191,3 +191,21 @@ u16 ddGetSJisIndex(u8 c)
     return 0xFFFF;
 }
 
+void ddDrawRGBA16ToFramebuffer(void* charTexBuf, s32 posX, s32 posY, u32 dx, s32 dy, s32 cy, void* frameBuf, s32 screenWidth)
+{
+    u16* src = (u16*)charTexBuf;
+    u16* dst = (u16*)frameBuf;
+
+    for (s32 y = 0; y < dy; y++) 
+    {
+        u16* srcRow = src + y * dx;
+
+        for (s32 x = 0; x < dx; x++) 
+        {
+            u16 pix = srcRow[x];
+
+            if (pix & 0x1)
+                dst[posX + x + ((posY + (11 - cy) + y) * screenWidth)] = pix;
+        }
+    }
+}

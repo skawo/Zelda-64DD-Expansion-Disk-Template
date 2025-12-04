@@ -1,6 +1,7 @@
 #ifndef DISKINFO_H 
 #define DISKINFO_H
 
+#include "../common.h"
 #include "../diskCode/diskCode.h"
 
 typedef struct diskInfo 

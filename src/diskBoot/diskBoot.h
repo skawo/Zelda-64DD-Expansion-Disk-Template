@@ -1,6 +1,7 @@
 #ifndef DISKBOOT_H 
 #define DISKBOOT_H
 
+#include "../common.h"
 #include "../../include/n64dd.h"
 #include "../../include/save.h"
 #include "../../include/message.h"

@@ -1,6 +1,7 @@
 #ifndef DISKCODE_H 
 #define DISKCODE_H
 
+#include "../common.h"
 #include "../../include/n64dd.h"
 #include "../../include/save.h"
 #include "../../include/message.h"
@@ -22,14 +23,6 @@
 #include "../funcExtend/funcExtend.h"
 #include "../funcRepl/funcRepl.h"
 #include "../diskScenes/diskScenes.h"
-
-//#define DVDLOGO
-#define SIGN_CLOCK
-#define SAVESTATES          // DISK_TYPE must be 4 or below
-//#define DDIPL_FONT
-#define MAP_SELECT
-#define DEBUGTOOLS
-#define ARWING
 
 typedef struct ddFuncPointers ddFuncPointers;
 typedef struct DDHookTable DDHookTable;

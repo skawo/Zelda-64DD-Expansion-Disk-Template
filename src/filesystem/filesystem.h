@@ -1,6 +1,9 @@
 extern unsigned char ERROR_IPL_YAZ0[];
 #define ERROR_IPL_YAZ0_LEN 9309
 
+extern unsigned char DISKLOADICON_BIN[];
+#define DISKLOADICON_BIN_LEN 512
+
 extern unsigned char CUTSCENEKOKIRITEST_BIN[];
 #define CUTSCENEKOKIRITEST_BIN_LEN 888
 

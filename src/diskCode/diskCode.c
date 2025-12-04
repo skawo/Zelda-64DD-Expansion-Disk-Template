@@ -47,7 +47,7 @@ DDState dd =
     .funcTablePtr             = (ddFuncPointers*)NULL,
     .hookTablePtr             = (DDHookTable*)NULL,
     .gameVersion              = -1,
-    .vtable                   = {},
+    .vtable                   = { NULL },
 
     #ifdef SAVESTATES
     .sState                   = { .magic = STATE_MAGIC, 
@@ -82,7 +82,10 @@ void Disk_Init(ddFuncPointers* funcTablePtr, DDHookTable* hookTablePtr)
     if (dd.gameVersion < 0)
         ShowFullScreenGraphic(ERROR_VERSION_YAZ0, ERROR_VERSION_YAZ0_LEN);
     else
-        dd.funcTablePtr->loadFromDisk(&dd.vtable, (s32)vTableDiskAddrs[dd.gameVersion], sizeof(VersionVTable));
+    {
+        Disk_Load(&dd.vtable, (s32)vTableDiskAddrs[dd.gameVersion], sizeof(VersionVTable));
+        Disk_Load(&diskAccessIcon, (s32)DISKLOADICON_BIN, DISKLOADICON_BIN_LEN);
+    }
 
     SaveContext* sContext = dd.funcTablePtr->saveContext;
     sContext->language = LANGUAGE_ENG;
@@ -119,6 +122,7 @@ void Disk_GameState(struct GameState* state)
 void Disk_PlayInit(struct PlayState* play)
 {
     dd.play = play;
+    ddCache_Defragment(&dd.cache);   
 }
 
 void Disk_PlayDestroy(struct PlayState* play)
@@ -418,24 +422,24 @@ void DoSaveStates(struct PlayState* play)
         dd.sState.destinationScene = play->sceneId;
         dd.sState.stateLoadCounter = 0;    
         
-        Disk_Write_MusicSafe(&dd.sState, diskPos, sizeof(DDSavedState));
+        Disk_Write(&dd.sState, diskPos, sizeof(DDSavedState));
         diskPos += sizeof(DDSavedState);
         ALIGN32(diskPos);
 
-        Disk_Write_MusicSafe(sc, diskPos, sizeof(gSaveContext));
+        Disk_Write(sc, diskPos, sizeof(gSaveContext));
         diskPos += sizeof(gSaveContext);     
         ALIGN32(diskPos);    
         
         u32 plAddr = (u32)play;
-        Disk_Write_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - plAddr) + 0x1610);
+        Disk_Write((void*)(plAddr - 0x1610), diskPos, (RAM_START - plAddr) + 0x1610);
         diskPos += (RAM_START - plAddr) + 0x1610; 
         ALIGN32(diskPos);
 
-        Disk_Write_MusicSafe(&dd.cache, diskPos, sizeof(DDCache));
+        Disk_Write(&dd.cache, diskPos, sizeof(DDCache));
         diskPos += sizeof(DDCache); 
         ALIGN32(diskPos);      
 
-        Disk_Write_MusicSafe(DDCACHE_START, diskPos, DDCACHE_SIZE);
+        Disk_Write(DDCACHE_START, diskPos, DDCACHE_SIZE);
         diskPos += DDCACHE_SIZE; 
         ALIGN32(diskPos);
 
@@ -450,7 +454,7 @@ void DoSaveStates(struct PlayState* play)
         PrintTextLineToFb(frameBuffer, CHECKING_MSG, -1, SCREEN_HEIGHT / 2 - 16, 1);
         PrintTextLineToFb(frameBuffer, PLEASE_WAIT, -1, SCREEN_HEIGHT / 2 + 16, 1);   
 
-        Disk_Load_MusicSafe(&dd.sState, diskPos, sizeof(DDSavedState));
+        Disk_Load(&dd.sState, diskPos, sizeof(DDSavedState));
 
         if (ddMemcmp(dd.sState.magic, STATE_MAGIC, 8))
         {
@@ -499,20 +503,20 @@ void DoSaveStates(struct PlayState* play)
         diskPos += sizeof(DDSavedState); 
         ALIGN32(diskPos);
 
-        Disk_Load_MusicSafe(sc, diskPos, sizeof(gSaveContext));
+        Disk_Load(sc, diskPos, sizeof(gSaveContext));
         diskPos += sizeof(gSaveContext);
         ALIGN32(diskPos);       
 
         u32 plAddr = (u32)play;
-        Disk_Load_MusicSafe((void*)(plAddr - 0x1610), diskPos, (RAM_START - plAddr) + 0x1610);
+        Disk_Load((void*)(plAddr - 0x1610), diskPos, (RAM_START - plAddr) + 0x1610);
         diskPos += (RAM_START - plAddr) + 0x1610; 
         ALIGN32(diskPos);
 
-        Disk_Load_MusicSafe(&dd.cache, diskPos, sizeof(DDCache));
+        Disk_Load(&dd.cache, diskPos, sizeof(DDCache));
         diskPos += sizeof(DDCache); 
         ALIGN32(diskPos);       
         
-        Disk_Load_MusicSafe(DDCACHE_START, diskPos, DDCACHE_SIZE);
+        Disk_Load(DDCACHE_START, diskPos, DDCACHE_SIZE);
         diskPos += DDCACHE_SIZE; 
         ALIGN32(diskPos);        
 

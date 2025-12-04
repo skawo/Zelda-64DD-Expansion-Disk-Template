@@ -1,6 +1,7 @@
 #ifndef DDTOOL_H 
 #define DDTOOL_H
 
+#include "../common.h"
 #include "../../include/ultra64.h"
 #include "../../include/gfx.h"
 
@@ -25,6 +26,7 @@ u32 FN(ddStrlen)(const char* str);
 void* FN(ddGetCurFrameBuffer)();
 void FN(ddClearFramebuffer)();
 void* FN(ddMemmove)(void* dest, const void* src, int n);
+void FN(ddDrawRGBA16ToFramebuffer)(void* charTexBuf, s32 posX, s32 posY, u32 dx, s32 dy, s32 cy, void* frameBuf, s32 screenWidth);
 
 #define ddMemcpy FN(ddMemcpy)
 #define ddMemcmp FN(ddMemcmp)
@@ -34,5 +36,6 @@ void* FN(ddMemmove)(void* dest, const void* src, int n);
 #define ddStrlen FN(ddStrlen)
 #define ddGetCurFrameBuffer FN(ddGetCurFrameBuffer)
 #define ddMemmove FN(ddMemmove)
+#define ddDrawRGBA16ToFramebuffer FN(ddDrawRGBA16ToFramebuffer)
 
 #endif // DDTOOL_H
