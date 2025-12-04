@@ -119,6 +119,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
         u32 outAlloc = 0;
         dd.vtable.arenaImpl_GetSizes(&cache->cacheArena, &outMaxFree, &outFree, &outAlloc);
         u32 arenaSize = outFree + outAlloc;
+        bool forceFreeFileSlot = false;
 
         if ((u32)alignedLen > arenaSize) 
         {
@@ -143,6 +144,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
                 {
                     is64Printf("Ran out of file slots when allocating %x\n", diskOffs);
                     dd.vtable.osFree(&cache->cacheArena, alloc);
+                    forceFreeFileSlot = true;
                     // Will evict file after this.
                 }
             }
@@ -188,7 +190,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
             u32 freeAfter = outFree;
             bool freed = false;
 
-            while (freeAfter < (u32)alignedLen)
+            while (freeAfter < (u32)alignedLen || forceFreeFileSlot)
             {
                 DDFile* oldestFile = NULL;
 
@@ -217,6 +219,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
 
                 freeAfter += lenFreed;
                 freed = true;
+                forceFreeFileSlot = false;
             }
 
             if (!freed && freeAfter < (u32)alignedLen)
