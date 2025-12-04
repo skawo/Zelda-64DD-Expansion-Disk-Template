@@ -181,6 +181,7 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
             continue;
         }
         // No single file large enough; free oldest files until we have enough free space
+        else
         {
             u32 freeAfter = outFree;
             bool freed = false;
