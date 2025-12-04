@@ -96,10 +96,10 @@
 
 extern void* __IPL_Entry;
 
-#define DEFECT_ENTRY(I) \
-    [I] = { \
-        .start = DEFECT_TRACKS_PER_ZONE + (I) * 2 * DEFECT_TRACKS_PER_ZONE, \
-        .end   = 2 * DEFECT_TRACKS_PER_ZONE + (I) * 2 * DEFECT_TRACKS_PER_ZONE \
+#define DEFECT_ENTRY(i) \
+    [i] = { \
+        .start = DEFECT_TRACKS_PER_ZONE + (i) * 2 * DEFECT_TRACKS_PER_ZONE, \
+        .end   = 2 * DEFECT_TRACKS_PER_ZONE + (i) * 2 * DEFECT_TRACKS_PER_ZONE \
     }
 
 #define INIT_DEFECT_DATA \
