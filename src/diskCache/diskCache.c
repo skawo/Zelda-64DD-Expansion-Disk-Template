@@ -5,7 +5,7 @@ void ddCache_Init(DDCache* cache)
 {
     is64Printf("Initing cache.\n");
 
-    dd.vtable.osMallocInit(&cache->cacheArena, DDCACHE_START, (int)(DDCACHE_END - DDCACHE_START));
+    dd.vtable.osMallocInit(&cache->cacheArena, DDCACHE_START, DDCACHE_SIZE);
     
     if (cache->cacheArena.head)
         is64Printf("Free: %X\n", cache->cacheArena.head->size);

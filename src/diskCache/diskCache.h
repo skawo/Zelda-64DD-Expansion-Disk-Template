@@ -8,7 +8,14 @@
 #include "../ddTool/ddTool.h"
 
 #define DDCACHE_START (void*)0x80600000
-#define DDCACHE_END (void*)0x80800000
+
+#ifdef SAVESTATES
+    // PJ64 compatibility...
+    #define DDCACHE_END (void*)0x807EFFF0
+#else
+    #define DDCACHE_END (void*)0x80800000
+#endif
+
 #define DDCACHE_SIZE DDCACHE_END - DDCACHE_START
 #define DDCACHE_MAXFILES 128
 #define DDFILE_INVALID 0xFFFFFFFF

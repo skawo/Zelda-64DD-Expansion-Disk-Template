@@ -7,13 +7,13 @@ extern void* __ErrorIPL_Start;
 
 void Disk_Boot()
 {
-    u32* frameBuffer = (u32*)0x80380000;
+    u32* frameBuffer = (u32*)0xA0100000;
     ScreenSetup(frameBuffer);
 
     u32* graphic = (u32*)(BLK_SIZE_ZONE0 + (u32)&__ErrorIPL_Start + (u32)&__IPL_Entry);
     ddYaz0_Decompress((u8*)graphic, (u8*)frameBuffer, ERROR_IPL_YAZ0_LEN);
 
-    while (true);    
+    INFINITE_LOOP;
 }
 
 void ScreenSetup(void* frameBuffer)

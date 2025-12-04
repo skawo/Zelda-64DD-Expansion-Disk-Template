@@ -38,4 +38,12 @@ void FN(ddDrawRGBA16ToFramebuffer)(void* charTexBuf, s32 posX, s32 posY, u32 dx,
 #define ddMemmove FN(ddMemmove)
 #define ddDrawRGBA16ToFramebuffer FN(ddDrawRGBA16ToFramebuffer)
 
+// This macro exists so that PJ64 doesn't complain about being stuck in an infinite loop.
+#define INFINITE_LOOP       \
+    while (true)            \
+    {                       \
+        volatile u8 i;      \
+        i++;                \
+    }
+
 #endif // DDTOOL_H

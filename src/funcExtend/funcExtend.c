@@ -190,7 +190,7 @@ void ShowFullScreenGraphic(void* graphic, u32 graphicLen)
     Disk_Load(comprBuf, (u32)graphic, graphicLen);
     void* frameBuffer = ddGetCurFrameBuffer(); 
     ddYaz0_Decompress(comprBuf, frameBuffer, graphicLen);
-    while (true);
+    INFINITE_LOOP;
 }
 
 u8 diskAccessIcon[DISK_ACCESS_ICON_X * DISK_ACCESS_ICON_Y * 2];
