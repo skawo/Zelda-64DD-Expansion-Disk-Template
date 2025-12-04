@@ -111,10 +111,11 @@ static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
     while(true)
     {
         u32 outMaxFree, outFree, outAlloc;
-        u32 arenaSize = outFree + outAlloc;
-        bool forceFreeFileSlot = false;
 
         dd.vtable.arenaImpl_GetSizes(&cache->cacheArena, &outMaxFree, &outFree, &outAlloc);
+
+        u32 arenaSize = outFree + outAlloc;
+        bool forceFreeFileSlot = false;
 
         if ((u32)alignedLen > arenaSize) 
         {
