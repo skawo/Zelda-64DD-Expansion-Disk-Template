@@ -25,7 +25,7 @@ void ddCache_Init(DDCache* cache)
     }
 }
 
-bool ddCache_AddFile(DDCache* cache, u32 fileDiskStart, void* addr, int len, u8 type)
+static bool ddCache_AddFile(DDCache* cache, u32 diskOffs, void* addr, int len, u8 type)
 {
     for (int i = 0; i < DDCACHE_MAXFILES; i++)
     {
@@ -33,7 +33,7 @@ bool ddCache_AddFile(DDCache* cache, u32 fileDiskStart, void* addr, int len, u8 
 
         if (checkedFile->diskOffs == DDFILE_INVALID)
         {
-            checkedFile->diskOffs = fileDiskStart;
+            checkedFile->diskOffs = diskOffs;
             checkedFile->len = len;
             checkedFile->timeStamp = dd.funcTablePtr->osGetTime();
             checkedFile->vram = addr;
@@ -72,9 +72,9 @@ static DDFile* ddCache_FindFile(DDCache* cache, void* ptr)
     return NULL;
 }
 
-void ddCache_FreeFile(DDCache* cache, u32 fileDiskStart)
+void ddCache_FreeFile(DDCache* cache, u32 diskOffs)
 {
-    DDFile* f = ddCache_FindFile(cache, (void*)fileDiskStart);
+    DDFile* f = ddCache_FindFile(cache, (void*)diskOffs);
 
     if (!f)
         return;
@@ -97,7 +97,7 @@ void ddCache_ClearAll(DDCache* cache)
     }    
 }
 
-bool ddCache_CanFileBeUnloaded(DDFile* file)
+static bool ddCache_CanFileBeUnloaded(DDFile* file)
 {
     if (!file ||
         (file->diskOffs == DDFILE_INVALID) ||
@@ -108,7 +108,7 @@ bool ddCache_CanFileBeUnloaded(DDFile* file)
     return true;
 }
 
-void* ddCache_AllocFile(DDCache* cache, u32 fileDiskStart, int len, u8 type)
+static void* ddCache_AllocFile(DDCache* cache, u32 diskOffs, int len, u8 type)
 {
     int alignedLen = ALIGN16(len);
 
@@ -128,20 +128,20 @@ void* ddCache_AllocFile(DDCache* cache, u32 fileDiskStart, int len, u8 type)
 
         if ((u32)alignedLen <= outFree)
         {
-            is64Printf("Allocing file %x, need %x, free=%x/%x\n", fileDiskStart, alignedLen, outFree, arenaSize);
+            is64Printf("Allocing file %x, need %x, free=%x/%x\n", diskOffs, alignedLen, outFree, arenaSize);
 
             void* alloc = dd.vtable.osMalloc(&cache->cacheArena, alignedLen);
 
             if (alloc != NULL)
             {
-                if (ddCache_AddFile(cache, fileDiskStart, alloc, alignedLen, type))
+                if (ddCache_AddFile(cache, diskOffs, alloc, alignedLen, type))
                 {
-                    is64Printf("Registered file %x @ %x\n", fileDiskStart, alloc);
+                    is64Printf("Registered file %x @ %x\n", diskOffs, alloc);
                     return alloc;
                 }
                 else
                 {
-                    is64Printf("Ran out of file slots when allocating %x\n", fileDiskStart);
+                    is64Printf("Ran out of file slots when allocating %x\n", diskOffs);
                     dd.vtable.osFree(&cache->cacheArena, alloc);
                     // Will evict file after this.
                 }
@@ -152,7 +152,7 @@ void* ddCache_AllocFile(DDCache* cache, u32 fileDiskStart, int len, u8 type)
             }
         }
 
-        is64Printf("Not enough space for file %x, need %x, free=%x/%x\n", fileDiskStart, alignedLen, outFree, arenaSize);
+        is64Printf("Not enough space for file %x, need %x, free=%x/%x\n", diskOffs, alignedLen, outFree, arenaSize);
 
         // Try to find a single existing cached file that is >= alignedLen (prefer oldest = smallest timestamp)
         DDFile* candidate = NULL;
@@ -177,7 +177,7 @@ void* ddCache_AllocFile(DDCache* cache, u32 fileDiskStart, int len, u8 type)
 
         if (candidate)
         {
-            is64Printf("Freeing file %x for file %x\n", candidate->diskOffs, fileDiskStart);
+            is64Printf("Freeing file %x for file %x\n", candidate->diskOffs, diskOffs);
             dd.vtable.osFree(&cache->cacheArena, candidate->vram);
             ddCache_InvalidateFile(cache, candidate);
             // loop to try allocation again
@@ -208,7 +208,7 @@ void* ddCache_AllocFile(DDCache* cache, u32 fileDiskStart, int len, u8 type)
                 if (!oldestFile)
                     break;
 
-                is64Printf("Freeing oldest file %x for file %x\n", oldestFile->diskOffs, fileDiskStart);
+                is64Printf("Freeing oldest file %x for file %x\n", oldestFile->diskOffs, diskOffs);
 
                 void* startPtr = oldestFile->vram;
                 u32 lenFreed = oldestFile->len;
@@ -239,6 +239,7 @@ void* ddCache_LoadFile(DDCache* cache, u32 offset, u32 len, u8 type)
         if (checkedFile->diskOffs == offset)
         {
             checkedFile->timeStamp = dd.funcTablePtr->osGetTime();
+            checkedFile->sceneIDWhenLoaded = dd.play->sceneId; 
             is64Printf("Found file at %x\n", checkedFile->vram);
 
             return checkedFile->vram;
