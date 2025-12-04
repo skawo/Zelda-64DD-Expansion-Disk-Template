@@ -96,8 +96,14 @@
 
 extern void* __IPL_Entry;
 
-#define DEFECT_ENTRY(i) { .start = (DEFECT_TRACKS_PER_ZONE + (i) * 2 * DEFECT_TRACKS_PER_ZONE), .end = (2 * DEFECT_TRACKS_PER_ZONE + (i) * 2 * DEFECT_TRACKS_PER_ZONE) }
-#define DEFECT_DATA [0 ... DISK_ZONES -1][0 ... DEFECT_TRACKS_PER_ZONE - 1] = 0xFF
+#define DEFECT_ENTRY(I) \
+    [I] = { \
+        .start = DEFECT_TRACKS_PER_ZONE + (I) * 2 * DEFECT_TRACKS_PER_ZONE, \
+        .end   = 2 * DEFECT_TRACKS_PER_ZONE + (I) * 2 * DEFECT_TRACKS_PER_ZONE \
+    }
+
+#define INIT_DEFECT_DATA \
+    [0 ... DISK_ZONES - 1] = { [0 ... DEFECT_TRACKS_PER_ZONE - 1] = 0xFF }
 
 #define DISK_DATA_INIT                      \
 {                                           \
@@ -118,7 +124,7 @@ extern void* __IPL_Entry;
     },                                      \
     ._padding_FFFFFFFF = 0xFFFFFFFF,        \
     .loadVramAddress = (void*)&__IPL_Entry, \
-    .defectTrackData DEFECT_DATA,           \
+    .defectTrackData = { INIT_DEFECT_DATA },\
     DISK_DATA_LBA_FIELDS                    \
 }
 
