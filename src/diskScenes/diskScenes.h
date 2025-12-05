@@ -19,6 +19,13 @@ typedef struct DDScene
     DDRoom* rooms;
 } DDScene;
 
+typedef struct DDCutscene
+{
+    int sceneId;
+    u32 diskAddr;
+    u32 size;
+} DDCutscene;
+
 #define END_ROOMLIST {(uintptr_t)NULL, (u32)NULL}
 #define MAX_ROOMS 32
 
@@ -32,6 +39,13 @@ typedef struct DDScene
     { \
         .vromStart = (uintptr_t)(file), \
         .vromEnd   = (uintptr_t)((file) + (file##_LEN)) \
+    }    
+
+#define DD_CUTSCENE(scene, file) \
+    { \
+        .sceneId  = scene, \
+        .diskAddr = (uintptr_t)(file), \
+        .size     = (file##_LEN) \
     }    
 
 #define DD_SCENE(_sceneId, _roomList, _sceneFile, _titleFile, _drawFunc) \
@@ -58,7 +72,14 @@ typedef struct DDScene
         __VA_ARGS__          \
     }
 
+#define DD_CUTSCENES(...)          \
+    DDCutscene ddCutscenes[] = {   \
+        __VA_ARGS__                \
+    }    
+
 extern DDScene ddScenes[];
+extern DDCutscene ddCutscenes[];
 extern const s32 ddScenesCount;
+extern const s32 ddCutscenesCount;
 
 #endif //DISKSCENES_H

@@ -156,6 +156,14 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
 
 struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* sceneTable)
 {
+    for (int i = 0; i < ddCutscenesCount; i++)
+    {
+        DDCutscene* cs = &ddCutscenes[i];
+        
+        if (cs->sceneId == sceneId)
+            ddCache_LoadFile(&dd.cache, cs->diskAddr, cs->size, DDFILE_SCENE_PERMANENT);
+    }
+
     for (int i = 0; i < ddScenesCount; i++)
     {
         DDScene* scene = &ddScenes[i];
@@ -263,13 +271,14 @@ s32 Disk_LoadMinimap(struct PlayState* play)
 
 s32 Disk_HandleEntranceTriggers(struct PlayState* play)
 {
+    // The cutscene must already be loaded at this point - the game will crash on real hardware if the load operation is started here.
     if (play->sceneId == SCENE_ZORAS_RIVER)
     {
         void* cScene = ddCache_LoadFile(&dd.cache, (u32)CUTSCENEZORARIVER_BIN, CUTSCENEZORARIVER_BIN_LEN, DDFILE_REGULAR); 
         play->csCtx.script = cScene;
         dd.funcTablePtr->saveContext->cutsceneTrigger = 2;
         dd.funcTablePtr->saveContext->showTitleCard = false;
-        return 1;
+        return 0;
     }
     else
         return 0;
@@ -405,6 +414,7 @@ void DoSaveStates(struct PlayState* play)
 
     int saveSize =  0x785C8 + sizeof(DDSavedState) + sizeof(gSaveContext) + (RAM_START - (u32)play) + 0x1610 + sizeof(DDCache) + DDCACHE_SIZE + 0x100;
     int diskPos = ROM_LENGTH - saveSize;
+
     ALIGN32(diskPos);
 
     // Save state
