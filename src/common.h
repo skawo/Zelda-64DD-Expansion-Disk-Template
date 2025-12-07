@@ -5,7 +5,7 @@
 
 //#define DVDLOGO
 #define SIGN_CLOCK
-#define SAVESTATES          // DISK_TYPE must be 4 or below
+//#define SAVESTATES          // DISK_TYPE must be 4 or below
 //#define DDIPL_FONT
 #define MAP_SELECT
 #define DEBUGTOOLS

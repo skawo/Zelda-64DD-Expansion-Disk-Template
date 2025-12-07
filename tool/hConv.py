@@ -33,6 +33,7 @@ def process_file(file_path, asm_file, header_file):
 
     # Write ASM
     with open(asm_file, "a") as asm_f:
+        asm_f.write(".balign 16\n")
         asm_f.write(f".global {symbol}\n")
         asm_f.write(f"{symbol}:\n")
         byte_chunks = [f"0x{b:02x}" for b in data]

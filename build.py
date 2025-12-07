@@ -31,7 +31,7 @@ def main():
         run(
             f'\"{py_cmd}\" tool/hConv.py filesystem src/filesystem '
             '--priority error_screens/Error_IPL.yaz0 '
-            '--extensions zmap,zscene,bin,yaz0,tbl'
+            '--extensions zmap,zscene,zroom,bin,yaz0,tbl'
         )
 
         if args.onlyfs:
