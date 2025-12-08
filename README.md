@@ -18,13 +18,13 @@ Options may be passed to build.sh:
 
 # Adding files
 Simply drop in .zscene, .zmap, .bin or .yaz files into the filesystem directory.
-(Additional extensions can be added by editing the <i>build.sh</i> script)
+(Additional extensions can be added by editing the <i>build.py</i> script)
 
 After running .build.py, headers will be generated in <i>include/fileHeaders</i> which should be included in the filesystem.c file.
 
-Afterwards, files can be loaded from the disk using the appropriate function (see the <i>ShowErrorScreen</i> function in <i>diskCode.c</i> for an example).
+Afterwards, files can be loaded from the disk using the Disk_Load function. A most-recent-use-based disk cache implementation is also provided allowing for easy management of resources.
 
-There also exists a pre-made function to replace arbitrary scenes in the game. The scenes and their rooms need to be defined in ddScenes.c
+There also exists a pre-made function to replace arbitrary scenes and cutscenes in the game. The scenes and their rooms need to be defined in ddScenes.c
 
 # Calling original functions
 Provided is a semi-automatic way to obtain the addresses for functions and variables in all three NTSC revisions of Ocarina of Time.
