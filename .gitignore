@@ -6,3 +6,4 @@ _pj64d.lnk
 *.disk
 *.elf
 *.o
+/tool/gcc/libexec
