@@ -5,7 +5,7 @@ Provided is a general working template with rudimentary error handling and a few
 This code has been created using the excellent <a href="https://github.com/LuigiBlood/zelda_dawn_dusk">Zelda: Dawn and Dusk</a> mod by Captain Seedy-Eye and LuigiBlood as a guide.
 
 # Building
-Requires Python 3 and make.
+Requires WSL2, Python 3 and make.
 
 1. Extract the toolchain archives found in tool/gcc.
 2. Run build.py found in the repository root.
