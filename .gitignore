@@ -7,3 +7,4 @@ _pj64d.lnk
 *.elf
 *.o
 /tool/gcc/libexec
+/tool/gcc/win
