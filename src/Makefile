@@ -129,7 +129,7 @@ funcRepl/funcRepl.o: funcRepl/funcRepl.c
 
 diskSystem/diskSystem.o: diskSystem/diskSystem.c
 	@echo "Compiling diskSystem..."
-	@$(CC) -D$(DISKREGION) -D$(DISKRELEASE) -D$(DISKFORMAT) -DTIMESTAMP=$(TIMESTAMP) \
+	@$(CC) -D$(DISKREGION) -D$(DISKRELEASE) -D$(DISKFORMAT) \
 	       -D__IPL_ENTRY=0x$(__IPL_ENTRY_POINT) \
 	       -c $< -o $@ -B$(CC1_DIR) $(CFLAGS)
 
