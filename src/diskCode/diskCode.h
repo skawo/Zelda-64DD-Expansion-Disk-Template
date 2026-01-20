@@ -15,6 +15,10 @@
 #include "../../include/audio.h"
 #include "../../include/map_select_state.h"
 #include "../../include/map.h"
+#include "../../include/regs.h"
+
+#undef gRegEditor
+#define gRegEditor dd.funcTablePtr->regEditor
 
 #include "../ddTool/ddTool.h"
 #include "../diskCache/diskCache.h"

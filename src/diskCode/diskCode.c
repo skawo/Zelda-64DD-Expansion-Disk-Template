@@ -154,6 +154,19 @@ void Disk_SceneDraw(struct PlayState* play, SceneDrawConfigFunc* func)
     #endif
 }
 
+DDScene* GetDDSceneEntry(int sceneId)
+{
+    for (int i = 0; i < ddScenesCount; i++)
+    {
+        DDScene* scene = &ddScenes[i];
+        
+        if (scene->sceneId == sceneId)
+            return scene;
+    }
+
+    return NULL;
+}
+
 struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* sceneTable)
 {
     for (int i = 0; i < ddCutscenesCount; i++)
@@ -164,29 +177,42 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
             ddCache_LoadFile(&dd.cache, cs->diskAddr, cs->size, DDFILE_SCENE_PERMANENT);
     }
 
-    for (int i = 0; i < ddScenesCount; i++)
+    DDScene* scene = GetDDSceneEntry(sceneId);
+
+    if (scene != NULL)
     {
-        DDScene* scene = &ddScenes[i];
-
-        if (scene->sceneId == sceneId)
+        if (scene->dungeonMaps != NULL)
         {
-            if (scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart != 0)
-                ddCache_LoadFile(&dd.cache, scene->entry.titleFile.vromStart, scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart, DDFILE_SCENE_PERMANENT);
+            int m = 0;
+            DDDungeonMap map = scene->dungeonMaps[m];
 
-            for (int j = 0; j < MAX_ROOMS; j++)
+            while (map.left.diskAddr != (uintptr_t)NULL && map.right.diskAddr != (uintptr_t)NULL)
             {
-                DDRoom* entry = &scene->rooms[j];
-
-                if (!entry->diskAddr)
-                    break;
-
-                ddCache_LoadFile(&dd.cache, entry->diskAddr, entry->size, DDFILE_SCENE_PERMANENT);
+                ddCache_LoadFile(&dd.cache, map.left.diskAddr, map.left.size, DDFILE_SCENE_PERMANENT);
+                ddCache_LoadFile(&dd.cache, map.right.diskAddr, map.right.size, DDFILE_SCENE_PERMANENT);
+                map = scene->dungeonMaps[++m];
             }
-
-            return &scene->entry;
         }
-    }
 
+        if (scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart != 0)
+            ddCache_LoadFile(&dd.cache, scene->entry.titleFile.vromStart, scene->entry.titleFile.vromEnd - scene->entry.titleFile.vromStart, DDFILE_SCENE_PERMANENT);
+
+        for (int j = 0; j < MAX_ROOMS; j++)
+        {
+            DDRoom* entry = &scene->rooms[j];
+
+            if (!entry->diskAddr)
+                break;
+
+            ddCache_LoadFile(&dd.cache, entry->diskAddr, entry->size, DDFILE_SCENE_PERMANENT);
+
+            if (entry->miniMap.diskAddr != (uintptr_t)NULL)
+                ddCache_LoadFile(&dd.cache, entry->miniMap.diskAddr, entry->miniMap.size, DDFILE_SCENE_PERMANENT);
+        }
+
+        return &scene->entry;
+    }
+    
     // Prevent crashing when using the ROM data in 64DD Mode.
     sceneTable[sceneId].unk_12 = 0;
     return &sceneTable[sceneId];
@@ -194,28 +220,26 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
 
 void Disk_LoadRoom(struct PlayState* play, struct RoomContext* roomCtx, s32 roomNum)
 {
-    for (int i = 0; i < ddScenesCount; i++)
+    DDScene* scene = GetDDSceneEntry(play->sceneId);
+
+    if (scene != NULL)
     {
-        DDScene* scene = &ddScenes[i];
+        int j = 0;
+        DDRoom entry = scene->rooms[j];
 
-        if (scene->sceneId == play->sceneId)
+        while (entry.diskAddr != (uintptr_t)NULL)
         {
-            for (int j = 0; j < MAX_ROOMS; j++)
+            if (j == roomNum)
             {
-                DDRoom* entry = &scene->rooms[j];
-
-                if (j == roomNum)
-                {
-                    roomCtx->roomRequestAddr = ddCache_LoadFile(&dd.cache, entry->diskAddr, entry->size, DDFILE_SCENE_PERMANENT);
-
-                    // We're done loading! 
-                    dd.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);                                      
-                    return;
-                }
+                roomCtx->roomRequestAddr = ddCache_LoadFile(&dd.cache, entry.diskAddr, entry.size, DDFILE_SCENE_PERMANENT);
+                dd.funcTablePtr->osSendMesg(&roomCtx->loadQueue, NULL, OS_MESG_NOBLOCK);                                      
+                return;
             }
-        }
-    } 
 
+            entry = scene->rooms[++j]; 
+        }    
+    }
+    
     // Regular room load from cartridge.
     u32 size = play->roomList.romFiles[roomNum].vromEnd - play->roomList.romFiles[roomNum].vromStart;
     dd.funcTablePtr->dmaMgrRequestAsync(&roomCtx->dmaRequest, roomCtx->roomRequestAddr,
@@ -258,15 +282,47 @@ void Disk_SetMessageTables(struct MessageTableEntry** Japanese, struct MessageTa
 void Disk_LoadDungeonMap(struct PlayState* play)
 {
     InterfaceContext* interfaceCtx = &play->interfaceCtx;
-    ddCache_LoadFileTo(interfaceCtx->mapSegment, &dd.cache, (u32)DUNGEONMAPLEFTTEXTURE_BIN, DUNGEONMAPLEFTTEXTURE_BIN_LEN);
-    ddCache_LoadFileTo(interfaceCtx->mapSegment + ALIGN16(MAP_48x85_TEX_SIZE), &dd.cache, (u32)DUNGEONMAPRIGHTTEXTURE_BIN, DUNGEONMAPRIGHTTEXTURE_BIN_LEN);
+    DDScene* scene = GetDDSceneEntry(play->sceneId);
+
+    if (scene != NULL && scene->dungeonMaps != NULL)
+    {
+        int m = 0;
+        DDDungeonMap map = scene->dungeonMaps[m];
+
+        while (map.left.diskAddr != (uintptr_t)NULL && map.right.diskAddr != (uintptr_t)NULL)
+        {
+            if (m == R_MAP_TEX_INDEX / 2)
+            {
+                ddCache_LoadFileTo(interfaceCtx->mapSegment, &dd.cache, map.left.diskAddr, map.left.size);
+                ddCache_LoadFileTo(interfaceCtx->mapSegment + ALIGN16(MAP_48x85_TEX_SIZE), &dd.cache, map.right.diskAddr, map.right.size);
+                return;
+            }
+
+            map = scene->dungeonMaps[++m];
+        }
+    }
+    
+    dd.funcTablePtr->dmaMgrRequestSync(interfaceCtx->mapSegment, dd.vtable.MAPS48x85 + (R_MAP_TEX_INDEX * MAP_48x85_TEX_SIZE), MAP_48x85_TEX_SIZE);
+    dd.funcTablePtr->dmaMgrRequestSync(interfaceCtx->mapSegment + ALIGN16(MAP_48x85_TEX_SIZE), dd.vtable.MAPS48x85 + ((R_MAP_TEX_INDEX + 1) * MAP_48x85_TEX_SIZE), MAP_48x85_TEX_SIZE);
 }
 
 s32 Disk_LoadMinimap(struct PlayState* play)
 {
     InterfaceContext* interfaceCtx = &play->interfaceCtx;
-    ddCache_LoadFileTo(interfaceCtx->mapSegment, &dd.cache, (u32)DUNGEONMINIMAP_BIN, DUNGEONMINIMAP_BIN_LEN);
-    return 1;
+    DDScene* scene = GetDDSceneEntry(play->sceneId);
+
+    if (scene != NULL)
+    {
+        DDMap map = scene->rooms[dd.funcTablePtr->saveContext->mapIndex].miniMap;
+
+        if (map.diskAddr != (uintptr_t)NULL)
+        {
+            ddCache_LoadFileTo(interfaceCtx->mapSegment, &dd.cache, map.diskAddr, map.size);
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 s32 Disk_HandleEntranceTriggers(struct PlayState* play)

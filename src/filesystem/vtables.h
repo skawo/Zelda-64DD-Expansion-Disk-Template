@@ -28,6 +28,7 @@ typedef struct
     int (*sprintf)(char*, const char*, ...);
     u32 ENGLISH_MESSAGE_DATA;
     u32 ENGLISH_FONT;
+    u32 MAPS48x85;
     Vec3f* gSfxDefaultPos;
     f32* gSfxDefaultFreqAndVolScale;
     s8* gSfxDefaultReverb;

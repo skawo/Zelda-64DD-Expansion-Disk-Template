@@ -57,6 +57,10 @@
     "symbol": "_nes_font_staticSegmentRomStart"
   },
   {
+    "decl": "u32 MAPS48x85",
+    "symbol": "_map_48x85_staticSegmentRomStart"
+  },
+  {
     "decl": "Vec3f* gSfxDefaultPos",
     "symbol": "gSfxDefaultPos"
   },  
