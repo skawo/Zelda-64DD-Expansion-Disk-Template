@@ -40,9 +40,7 @@ typedef struct DDScene
     DDDungeonMap* dungeonMaps;
 } DDScene;
 
-
 #define END_LIST {(uintptr_t)NULL, (u32)NULL}
-#define NO_MAP {(uintptr_t)NULL, (u32)NULL}
 #define MAX_ROOMS 32
 
 #define DD_MAP(file) \
@@ -63,13 +61,6 @@ typedef struct DDScene
         .size     = (file##_LEN), \
         .miniMap  = DD_MAP(minimapFile), \
     }
-
-#define DD_ROOM_NO_MAP(file) \
-    { \
-        .diskAddr = (uintptr_t)(file), \
-        .size     = (file##_LEN), \
-        .miniMap  = NO_MAP, \
-    }    
 
 #define DD_FILE(file) \
     { \
