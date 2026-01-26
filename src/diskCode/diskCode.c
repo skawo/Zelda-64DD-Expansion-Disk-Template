@@ -206,7 +206,7 @@ struct SceneTableEntry* Disk_GetSceneEntry(s32 sceneId, struct SceneTableEntry* 
 
             ddCache_LoadFile(&dd.cache, entry->diskAddr, entry->size, DDFILE_SCENE_PERMANENT);
 
-            if (entry->miniMap.diskAddr != (uintptr_t)NULL)
+            if (entry->miniMap.diskAddr != (uintptr_t)NULL && entry->miniMap.size != (uintptr_t)NULL)
                 ddCache_LoadFile(&dd.cache, entry->miniMap.diskAddr, entry->miniMap.size, DDFILE_SCENE_PERMANENT);
         }
 
@@ -315,7 +315,7 @@ s32 Disk_LoadMinimap(struct PlayState* play)
     {
         DDMap map = scene->rooms[dd.funcTablePtr->saveContext->mapIndex].miniMap;
 
-        if (map.diskAddr != (uintptr_t)NULL)
+        if (map.diskAddr != (uintptr_t)NULL && map.size != (uintptr_t)NULL)
         {
             ddCache_LoadFileTo(interfaceCtx->mapSegment, &dd.cache, map.diskAddr, map.size);
             return 1;
